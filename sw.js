@@ -8,9 +8,9 @@ const DYNAMIC_CACHE = 'dynamic-v1.2.0';
 const STATIC_ASSETS = [
   '/',
   '/index.html',
-  '/main.js',
-  '/firebase-config.js',
-  '/style.css',
+  '/js/main.js',
+  '/js/firebase-config.js',
+  '/css/style.css',
   '/manifest.json',
   '/offline.html',
   // Essential icons
