@@ -1,91 +1,378 @@
 {
   "name": "Zambia Emergency Response",
-  "short_name": "Emergency",
-  "description": "Community-based emergency response system for Zambia",
+  "short_name": "ZambiaEmergency",
+  "description": "Community-based emergency response system connecting Zambians in times of need with local responders and emergency services",
+  "version": "1.2.0",
   "start_url": "/",
   "scope": "/",
   "display": "standalone",
   "orientation": "portrait-primary",
   "theme_color": "#dc2626",
   "background_color": "#ffffff",
-  "lang": "en-US",
-  "categories": ["health", "utilities", "safety"],
+  "lang": "en-ZM",
+  "dir": "ltr",
+  "categories": ["health", "utilities", "safety", "productivity", "social"],
+  
   "icons": [
-    { "src": "/icons/icon-72x72.png",  "sizes": "72x72",  "type": "image/png", "purpose": "any" },
-    { "src": "/icons/icon-96x96.png",  "sizes": "96x96",  "type": "image/png", "purpose": "any" },
-    { "src": "/icons/icon-128x128.png","sizes": "128x128","type": "image/png", "purpose": "any" },
-    { "src": "/icons/icon-144x144.png","sizes": "144x144","type": "image/png", "purpose": "any" },
-    { "src": "/icons/icon-152x152.png","sizes": "152x152","type": "image/png", "purpose": "any" },
-    { "src": "/icons/icon-192x192.png","sizes": "192x192","type": "image/png", "purpose": "any maskable" },
-    { "src": "/icons/icon-384x384.png","sizes": "384x384","type": "image/png", "purpose": "any" },
-    { "src": "/icons/icon-512x512.png","sizes": "512x512","type": "image/png", "purpose": "any maskable" }
+    {
+      "src": "/icons/icon-72x72.png",
+      "sizes": "72x72",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icons/icon-96x96.png",
+      "sizes": "96x96",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icons/icon-128x128.png",
+      "sizes": "128x128",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icons/icon-144x144.png",
+      "sizes": "144x144",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icons/icon-152x152.png",
+      "sizes": "152x152",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icons/icon-192x192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/icons/icon-384x384.png",
+      "sizes": "384x384",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icons/icon-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
   ],
+  
   "shortcuts": [
     {
       "name": "Medical Emergency",
       "short_name": "Medical",
-      "description": "Report medical emergency",
-      "url": "/?emergency=medical",
-      "icons": [{ "src": "/icons/medical-shortcut.png", "sizes": "96x96", "type": "image/png" }]
+      "description": "Report medical emergency - immediate response",
+      "url": "/?emergency=medical&priority=P1",
+      "icons": [
+        {
+          "src": "/icons/medical-shortcut.png",
+          "sizes": "96x96",
+          "type": "image/png"
+        }
+      ]
     },
     {
       "name": "Fire Emergency",
       "short_name": "Fire",
-      "description": "Report fire emergency",
-      "url": "/?emergency=fire",
-      "icons": [{ "src": "/icons/fire-shortcut.png", "sizes": "96x96", "type": "image/png" }]
+      "description": "Report fire emergency - immediate response",
+      "url": "/?emergency=fire&priority=P1",
+      "icons": [
+        {
+          "src": "/icons/fire-shortcut.png",
+          "sizes": "96x96",
+          "type": "image/png"
+        }
+      ]
     },
     {
       "name": "Police Emergency",
       "short_name": "Police",
-      "description": "Report police emergency",
-      "url": "/?emergency=police",
-      "icons": [{ "src": "/icons/police-shortcut.png", "sizes": "96x96", "type": "image/png" }]
+      "description": "Report security incident or crime",
+      "url": "/?emergency=police&priority=P2",
+      "icons": [
+        {
+          "src": "/icons/police-shortcut.png",
+          "sizes": "96x96",
+          "type": "image/png"
+        }
+      ]
     },
     {
-      "name": "Find Help",
-      "short_name": "Help",
-      "description": "Find nearby emergency services",
+      "name": "Find Nearby Help",
+      "short_name": "Find Help",
+      "description": "Locate nearby emergency services and responders",
       "url": "/?action=find-help",
-      "icons": [{ "src": "/icons/help-shortcut.png", "sizes": "96x96", "type": "image/png" }]
+      "icons": [
+        {
+          "src": "/icons/help-shortcut.png",
+          "sizes": "96x96",
+          "type": "image/png"
+        }
+      ]
+    },
+    {
+      "name": "Emergency Contacts",
+      "short_name": "Contacts",
+      "description": "View Zambian emergency service numbers",
+      "url": "/?view=contacts",
+      "icons": [
+        {
+          "src": "/icons/contacts-shortcut.png",
+          "sizes": "96x96",
+          "type": "image/png"
+        }
+      ]
     }
   ],
+  
   "screenshots": [
-    { "src": "/screenshots/emergency-report.png",   "sizes": "320x640", "type": "image/png", "form_factor": "narrow", "label": "Emergency reporting interface" },
-    { "src": "/screenshots/responder-tracking.png", "sizes": "320x640", "type": "image/png", "form_factor": "narrow", "label": "Real-time responder tracking" },
-    { "src": "/screenshots/emergency-chat.png",     "sizes": "320x640", "type": "image/png", "form_factor": "narrow", "label": "Emergency communication chat" }
+    {
+      "src": "/screenshots/home-screen.png",
+      "sizes": "390x844",
+      "type": "image/png",
+      "form_factor": "narrow",
+      "label": "Main emergency reporting interface with location services"
+    },
+    {
+      "src": "/screenshots/emergency-report.png",
+      "sizes": "390x844",
+      "type": "image/png",
+      "form_factor": "narrow",
+      "label": "Emergency confirmation screen with priority selection"
+    },
+    {
+      "src": "/screenshots/responder-tracking.png",
+      "sizes": "390x844",
+      "type": "image/png",
+      "form_factor": "narrow", 
+      "label": "Real-time responder tracking with ETA and location map"
+    },
+    {
+      "src": "/screenshots/emergency-chat.png",
+      "sizes": "390x844",
+      "type": "image/png",
+      "form_factor": "narrow",
+      "label": "Emergency communication chat with responders"
+    },
+    {
+      "src": "/screenshots/nearby-services.png",
+      "sizes": "390x844",
+      "type": "image/png",
+      "form_factor": "narrow",
+      "label": "Map showing nearby hospitals, police stations, and fire services"
+    },
+    {
+      "src": "/screenshots/desktop-view.png",
+      "sizes": "1280x720",
+      "type": "image/png",
+      "form_factor": "wide",
+      "label": "Desktop interface for emergency dispatchers and administrators"
+    }
   ],
+  
   "related_applications": [
     {
       "platform": "play",
-      "url": "https://play.google.com/store/apps/details?id=com.example.emergency",
-      "id": "com.example.emergency"
+      "url": "https://play.google.com/store/apps/details?id=zm.gov.emergency.response",
+      "id": "zm.gov.emergency.response"
+    },
+    {
+      "platform": "itunes",
+      "url": "https://apps.apple.com/app/zambia-emergency-response/id123456789"
     }
   ],
+  
   "prefer_related_applications": false,
+  
   "protocol_handlers": [
-    { "protocol": "tel", "url": "/call?number=%s" },
-    { "protocol": "sms", "url": "/sms?number=%s" }
+    {
+      "protocol": "tel",
+      "url": "/call?number=%s"
+    },
+    {
+      "protocol": "sms", 
+      "url": "/sms?number=%s&body=%s"
+    },
+    {
+      "protocol": "mailto",
+      "url": "/contact?email=%s"
+    }
   ],
-  "edge_side_panel": { "preferred_width": 400 },
-  "launch_handler": { "client_mode": ["focus-existing", "auto"] },
+  
+  "edge_side_panel": {
+    "preferred_width": 400
+  },
+  
+  "launch_handler": {
+    "client_mode": ["focus-existing", "auto"]
+  },
+  
   "file_handlers": [
     {
-      "action": "/handle-image",
-      "accept": { "image/*": [".jpg", ".jpeg", ".png", ".gif"] },
-      "icons": [{ "src": "/icons/image-handler.png", "sizes": "96x96", "type": "image/png" }],
+      "action": "/upload-evidence",
+      "accept": {
+        "image/*": [".jpg", ".jpeg", ".png", ".gif", ".webp"],
+        "video/*": [".mp4", ".mov", ".avi", ".webm"],
+        "audio/*": [".mp3", ".wav", ".m4a", ".ogg"]
+      },
+      "icons": [
+        {
+          "src": "/icons/file-handler.png",
+          "sizes": "96x96",
+          "type": "image/png"
+        }
+      ],
       "launch_type": "single-client"
     }
   ],
+  
   "share_target": {
     "action": "/share-emergency",
     "method": "POST",
     "enctype": "multipart/form-data",
     "params": {
       "title": "title",
-      "text": "text",
-      "url": "url",
-      "files": [{ "name": "media", "accept": ["image/*", "video/*"] }]
+      "text": "description",
+      "url": "location_url",
+      "files": [
+        {
+          "name": "evidence",
+          "accept": ["image/*", "video/*", "audio/*"]
+        }
+      ]
+    }
+  },
+  
+  "permissions": [
+    "geolocation",
+    "notifications",
+    "camera",
+    "microphone",
+    "background-sync",
+    "push-messaging"
+  ],
+  
+  "gcm_sender_id": "745207632001",
+  
+  "display_override": ["window-controls-overlay", "minimal-ui", "standalone", "browser"],
+  
+  "handle_links": "preferred",
+  
+  "capture_links": "existing-client-navigate",
+  
+  "scope_extensions": [
+    {
+      "origin": "https://emergency.gov.zm"
+    }
+  ],
+  
+  "id": "zambia-emergency-response-pwa",
+  
+  "iarc_rating_id": "e58c174a-81d2-5c3c-32cc-34b8de4a52e9",
+  
+  "features": [
+    "cross-origin-isolated"
+  ],
+  
+  "note_taking": {
+    "new_note_url": "/emergency-notes?mode=new"
+  },
+  
+  "app_urls": [
+    {
+      "url": "/emergency",
+      "scope_pattern": "/emergency/*"
+    },
+    {
+      "url": "/responder",
+      "scope_pattern": "/responder/*"
+    },
+    {
+      "url": "/admin",
+      "scope_pattern": "/admin/*"
+    }
+  ],
+  
+  "user_preferences": {
+    "color_scheme_dark": true,
+    "color_scheme_light": true
+  },
+  
+  "categories_custom": [
+    "emergency-services",
+    "community-safety",
+    "disaster-response",
+    "first-aid",
+    "zambia-government"
+  ],
+  
+  "manifest_version": 3,
+  
+  "offline_enabled": true,
+  
+  "localization": {
+    "default_locale": "en",
+    "supported_locales": ["en", "ny", "bem", "ton", "loz"],
+    "fallback_locale": "en"
+  },
+  
+  "privacy_policy": "https://emergency.gov.zm/privacy",
+  
+  "terms_of_service": "https://emergency.gov.zm/terms",
+  
+  "support_url": "https://emergency.gov.zm/support",
+  
+  "developer": {
+    "name": "Zambia Ministry of Health & Emergency Services",
+    "url": "https://www.moh.gov.zm/"
+  },
+  
+  "version_name": "Lusaka Launch",
+  
+  "minimum_chrome_version": "88",
+  
+  "prefer_related_applications": false,
+  
+  "screenshots_desktop": [
+    {
+      "src": "/screenshots/admin-dashboard.png",
+      "sizes": "1920x1080",
+      "type": "image/png",
+      "label": "Emergency dispatcher dashboard with real-time incident management"
+    },
+    {
+      "src": "/screenshots/analytics-view.png",
+      "sizes": "1920x1080", 
+      "type": "image/png",
+      "label": "Emergency response analytics and reporting interface"
+    }
+  ],
+  
+  "web_accessible_resources": [
+    {
+      "resources": [
+        "/icons/*",
+        "/sounds/*",
+        "/maps/*"
+      ],
+      "matches": ["<all_urls>"]
+    }
+  ],
+  
+  "content_security_policy": {
+    "extension_pages": "script-src 'self' https://www.gstatic.com https://cdn.tailwindcss.com https://unpkg.com; object-src 'self'"
+  },
+  
+  "experimental": {
+    "web_app_url_handling": {
+      "origin": "https://emergency.gov.zm"
     }
   }
 }

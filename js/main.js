@@ -1,26 +1,13 @@
-// main.js - Updated main script with Firebase integration
-
-// main.js - Updated main script with Firebase integration
-
-// main.js - Updated main script with Firebase integration
+// main.js - Corrected main script with proper Firebase integration
 
 // Import Firebase SDK
 import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
-import { getFirestore, collection, addDoc, getDocs, doc, updateDoc, onSnapshot } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
+import { getFirestore, collection, addDoc, getDocs, doc, updateDoc, onSnapshot, serverTimestamp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
 import { getAuth, signInAnonymously, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js';
 import { getAnalytics } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-analytics.js';
 
-// Import your configuration
-import { firebaseConfig, COLLECTIONS, EMERGENCY_TYPES, EMERGENCY_PRIORITIES } from './firebase-config.js';
-
-// Initialize Firebase
-const app = initializeApp(firebaseConfig);
-const db = getFirestore(app);
-const auth = getAuth(app);
-const analytics = getAnalytics(app);
-
-
-// Your emergency response functions
+// Import configuration
+import { firebaseConfig, COLLECTIONS, EMERGENCY_TYPES, EMERGENCY_PRIORITIES, db, auth, analytics } from './firebase-config.js';
 
 // Global state
 let currentLocation = null;
@@ -30,42 +17,68 @@ let responders = [];
 let currentUser = null;
 let isOnline = navigator.onLine;
 
-// Simulated Firebase functions for development (replace with real Firebase when ready)
+// Real Firebase functions
 const FirebaseAPI = {
-  // Simulate user authentication
+  // Initialize user authentication
   async initializeAuth() {
-    return new Promise((resolve) => {
-      setTimeout(() => {
-        currentUser = { uid: 'demo-user-' + Date.now(), isAnonymous: true };
-        console.log('Demo user authenticated:', currentUser.uid);
-        resolve(currentUser);
-      }, 1000);
+    return new Promise((resolve, reject) => {
+      onAuthStateChanged(auth, (user) => {
+        if (user) {
+          currentUser = user;
+          console.log('User authenticated:', user.uid);
+          resolve(user);
+        } else {
+          // Sign in anonymously
+          signInAnonymously(auth)
+            .then((result) => {
+              currentUser = result.user;
+              console.log('Anonymous user created:', currentUser.uid);
+              resolve(currentUser);
+            })
+            .catch((error) => {
+              console.error('Authentication failed:', error);
+              reject(error);
+            });
+        }
+      });
     });
   },
 
-  // Simulate emergency creation
+  // Create emergency in Firestore
   async createEmergency(emergencyData) {
-    return new Promise((resolve) => {
-      setTimeout(() => {
-        const emergency = {
-          ...emergencyData,
-          id: 'EMR' + Date.now(),
-          userId: currentUser.uid,
-          createdAt: new Date(),
-          updatedAt: new Date(),
-          status: 'active',
-          responders: [],
-          messages: []
-        };
-        
-        console.log('Emergency created:', emergency);
-        resolve(emergency);
-      }, 500);
-    });
+    try {
+      const docRef = await addDoc(collection(db, COLLECTIONS.EMERGENCIES), {
+        ...emergencyData,
+        userId: currentUser.uid,
+        createdAt: serverTimestamp(),
+        updatedAt: serverTimestamp(),
+        status: 'active',
+        responders: [],
+        messages: []
+      });
+      
+      const emergency = {
+        ...emergencyData,
+        id: docRef.id,
+        userId: currentUser.uid,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+        status: 'active',
+        responders: [],
+        messages: []
+      };
+      
+      console.log('Emergency created in Firebase:', emergency.id);
+      return emergency;
+    } catch (error) {
+      console.error('Error creating emergency:', error);
+      throw error;
+    }
   },
 
-  // Simulate responder listening
+  // Listen to nearby responders (simulated for demo)
   async listenToNearbyResponders(location, radiusKm, callback) {
+    // In production, this would query Firestore for nearby responders
     setTimeout(() => {
       const mockResponders = [
         { 
@@ -106,46 +119,63 @@ const FirebaseAPI = {
     }, 1000);
   },
 
-  // Simulate emergency updates
+  // Update emergency status
   async updateEmergencyStatus(emergencyId, status, additionalData = {}) {
-    return new Promise((resolve) => {
-      setTimeout(() => {
-        console.log('Emergency status updated:', { emergencyId, status, ...additionalData });
-        resolve({ success: true });
-      }, 300);
-    });
+    try {
+      const emergencyRef = doc(db, COLLECTIONS.EMERGENCIES, emergencyId);
+      await updateDoc(emergencyRef, {
+        status,
+        updatedAt: serverTimestamp(),
+        ...additionalData
+      });
+      console.log('Emergency status updated:', { emergencyId, status });
+      return { success: true };
+    } catch (error) {
+      console.error('Error updating emergency:', error);
+      throw error;
+    }
   },
 
-  // Simulate message sending
+  // Add message to emergency
   async addEmergencyMessage(emergencyId, message, senderType = 'user') {
-    return new Promise((resolve) => {
-      setTimeout(() => {
-        const messageData = {
-          id: 'msg' + Date.now(),
-          emergencyId,
-          senderId: currentUser.uid,
-          senderType,
-          message,
-          timestamp: new Date(),
-          read: false
-        };
-        console.log('Message sent:', messageData);
-        resolve(messageData);
-      }, 200);
-    });
+    try {
+      const messageData = {
+        emergencyId,
+        senderId: currentUser.uid,
+        senderType,
+        message,
+        timestamp: serverTimestamp(),
+        read: false
+      };
+      
+      const docRef = await addDoc(collection(db, COLLECTIONS.MESSAGES), messageData);
+      
+      console.log('Message sent:', docRef.id);
+      return { ...messageData, id: docRef.id };
+    } catch (error) {
+      console.error('Error sending message:', error);
+      throw error;
+    }
   }
 };
 
-// Initialize app with Firebase
+// Initialize app
 document.addEventListener('DOMContentLoaded', async function() {
-    await initializeApp();
-    setupEventListeners();
-    requestLocation();
-    setupNetworkMonitoring();
+    try {
+        await initializeAppWithFirebase();
+        setupEventListeners();
+        requestLocation();
+        setupNetworkMonitoring();
+        showNotification('System initialized successfully', 'success');
+    } catch (error) {
+        console.error('App initialization failed:', error);
+        showNotification('Failed to initialize. Running in offline mode.', 'error');
+        initializeOfflineMode();
+    }
 });
 
-async function initializeApp() {
-    updateStatus('Connecting...');
+async function initializeAppWithFirebase() {
+    updateStatus('Connecting to Firebase...');
     
     try {
         // Initialize Firebase authentication
@@ -157,16 +187,29 @@ async function initializeApp() {
         setupRealTimeListeners();
         
     } catch (error) {
-        console.error('Initialization error:', error);
-        updateStatus('Offline Mode');
-        document.getElementById('connection-indicator').className = 'w-3 h-3 bg-yellow-400 rounded-full';
+        console.error('Firebase initialization error:', error);
+        throw error;
     }
+}
+
+function initializeOfflineMode() {
+    updateStatus('Offline Mode');
+    document.getElementById('connection-indicator').className = 'w-3 h-3 bg-yellow-400 rounded-full';
+    setupEventListeners();
+    requestLocation();
 }
 
 function setupRealTimeListeners() {
     // Listen for emergency updates if there's an active emergency
     if (activeEmergency && activeEmergency.id) {
-        listenToEmergencyUpdates(activeEmergency.id);
+        const unsubscribe = onSnapshot(doc(db, COLLECTIONS.EMERGENCIES, activeEmergency.id), (doc) => {
+            if (doc.exists()) {
+                const updatedEmergency = { id: doc.id, ...doc.data() };
+                console.log('Emergency updated:', updatedEmergency);
+                activeEmergency = updatedEmergency;
+                updateEmergencyDisplay();
+            }
+        });
     }
 }
 
@@ -190,12 +233,21 @@ function setupEventListeners() {
 
     // Quick actions
     document.getElementById('call-emergency').addEventListener('click', function() {
-        if (activeEmergency) {
-            // In real app: integrate with WebRTC or phone calling
-            alert('Emergency Services: 911\nPolice: 999\nFire: 993');
-        } else {
-            alert('Emergency Services:\n🚑 Medical: 911\n👮 Police: 999\n🔥 Fire: 993');
-        }
+        const emergencyNumbers = {
+            'Zambia': {
+                'Police': '911',
+                'Fire': '993', 
+                'Medical': '992',
+                'General Emergency': '991'
+            }
+        };
+        
+        let numbersText = 'Zambia Emergency Numbers:\n';
+        Object.entries(emergencyNumbers['Zambia']).forEach(([service, number]) => {
+            numbersText += `${service}: ${number}\n`;
+        });
+        
+        alert(numbersText);
     });
 
     document.getElementById('find-help').addEventListener('click', showNearbyHelp);
@@ -204,17 +256,21 @@ function setupEventListeners() {
 function setupNetworkMonitoring() {
     window.addEventListener('online', function() {
         isOnline = true;
-        updateStatus('Connected');
+        updateStatus('Back Online');
         document.getElementById('connection-indicator').className = 'w-3 h-3 bg-green-400 rounded-full';
+        showNotification('Connection restored', 'success');
         
-        // Sync any pending data
-        syncPendingData();
+        // Attempt to reconnect to Firebase
+        if (!currentUser) {
+            initializeAppWithFirebase().catch(console.error);
+        }
     });
 
     window.addEventListener('offline', function() {
         isOnline = false;
         updateStatus('Offline');
         document.getElementById('connection-indicator').className = 'w-3 h-3 bg-red-400 rounded-full';
+        showNotification('You are now offline', 'info');
     });
 }
 
@@ -224,7 +280,7 @@ async function confirmEmergency() {
     const priority = modal.dataset.priority;
 
     if (!currentLocation) {
-        alert('Location is required for emergency reporting. Please enable location services.');
+        showNotification('Location is required for emergency reporting. Please enable location services.', 'error');
         return;
     }
 
@@ -236,29 +292,44 @@ async function confirmEmergency() {
             priority: priority,
             location: currentLocation,
             timestamp: new Date(),
-            description: '', // Could add description input in modal
+            description: '',
             mediaUrls: [],
-            contactPhone: '', // Could add contact info
+            contactPhone: '',
             status: 'active'
         };
 
-        // Create emergency in Firebase
-        activeEmergency = await FirebaseAPI.createEmergency(emergencyData);
+        if (isOnline && currentUser) {
+            // Create emergency in Firebase
+            activeEmergency = await FirebaseAPI.createEmergency(emergencyData);
+        } else {
+            // Create emergency locally for offline mode
+            activeEmergency = {
+                ...emergencyData,
+                id: 'local-' + Date.now(),
+                userId: 'offline-user',
+                createdAt: new Date(),
+                updatedAt: new Date(),
+                responders: [],
+                messages: [],
+                isOffline: true
+            };
+            
+            // Store for later sync when online
+            storeOfflineEmergency(activeEmergency);
+        }
         
         hideEmergencyModal();
         showActiveEmergency();
         
-        // Start listening for responders
+        // Start looking for responders
         await dispatchToResponders();
         
         updateStatus('Emergency active');
-        
-        // Send notifications (simulate for now)
-        sendEmergencyNotifications();
+        showNotification('Emergency reported successfully', 'success');
         
     } catch (error) {
         console.error('Error confirming emergency:', error);
-        alert('Failed to create emergency. Please try again.');
+        showNotification('Failed to create emergency. Please try again.', 'error');
         updateStatus('Error occurred');
     }
 }
@@ -280,7 +351,7 @@ async function dispatchToResponders() {
                 responders.slice(0, 3).forEach((responder, index) => {
                     setTimeout(() => {
                         simulateResponderResponse(responder);
-                    }, (index + 1) * 2000); // Stagger responses
+                    }, (index + 1) * 2000);
                 });
             }
         );
@@ -309,7 +380,7 @@ function updateResponderDisplay(respondersData) {
         if (activeEmergency.type === 'medical') return r.type === 'Medical' || r.type === 'First Aid';
         if (activeEmergency.type === 'fire') return r.type === 'Fire' || r.type === 'First Aid';
         if (activeEmergency.type === 'police') return r.type === 'Police';
-        return true; // general emergency
+        return true;
     });
 
     responderList.innerHTML = relevantResponders.map(responder => `
@@ -335,9 +406,8 @@ function simulateResponderResponse(responder) {
 
     const statusElement = responderCard.querySelector('.responder-status');
     
-    // Simulate different response scenarios
     const responses = ['Accepted', 'En route', 'Declined', 'No response'];
-    const weights = [0.7, 0.0, 0.2, 0.1]; // 70% accept, 20% decline, 10% no response
+    const weights = [0.7, 0.0, 0.2, 0.1];
     
     const random = Math.random();
     let response;
@@ -350,7 +420,6 @@ function simulateResponderResponse(responder) {
         statusElement.innerHTML = '<span class="text-green-600 font-semibold">✓ Accepted</span>';
         responderCard.classList.add('ring-2', 'ring-green-300');
         
-        // Simulate arrival
         setTimeout(() => {
             statusElement.innerHTML = '<span class="text-blue-600 font-semibold">🚗 En route</span>';
         }, 1000);
@@ -358,7 +427,8 @@ function simulateResponderResponse(responder) {
         setTimeout(() => {
             statusElement.innerHTML = '<span class="text-purple-600 font-semibold">📍 Arrived</span>';
             updateStatus('Responder arrived');
-        }, responder.eta * 60 * 1000); // Convert minutes to milliseconds
+            showNotification(`${responder.name} has arrived at your location`, 'success');
+        }, responder.eta * 60 * 1000);
         
     } else if (response === 'Declined') {
         statusElement.innerHTML = '<span class="text-red-600">✗ Declined</span>';
@@ -366,36 +436,6 @@ function simulateResponderResponse(responder) {
     } else {
         statusElement.innerHTML = '<span class="text-gray-400">No response</span>';
         responderCard.classList.add('opacity-30');
-    }
-}
-
-async function sendEmergencyNotifications() {
-    if (!activeEmergency) return;
-
-    try {
-        // In real implementation, this would send SMS notifications
-        console.log('Sending notifications for emergency:', activeEmergency.id);
-        
-        // Simulate SMS to emergency contacts
-        const emergencyContacts = ['+260977123456', '+260966789012']; // Demo numbers
-        console.log('SMS sent to emergency contacts:', emergencyContacts);
-        
-        // Simulate notification to official services
-        console.log('Official services notified:', {
-            type: activeEmergency.type,
-            location: activeEmergency.location,
-            priority: activeEmergency.priority
-        });
-        
-        // Add message to emergency record
-        await FirebaseAPI.addEmergencyMessage(
-            activeEmergency.id,
-            `Emergency reported: ${activeEmergency.type} at ${new Date().toLocaleTimeString()}`,
-            'system'
-        );
-        
-    } catch (error) {
-        console.error('Error sending notifications:', error);
     }
 }
 
@@ -415,8 +455,9 @@ function showActiveEmergency() {
             <div><strong>Type:</strong> ${emergencyTypes[activeEmergency.type]}</div>
             <div><strong>Priority:</strong> <span class="text-red-600 font-bold">${activeEmergency.priority}</span></div>
             <div><strong>ID:</strong> <code class="text-xs bg-gray-100 px-1 rounded">${activeEmergency.id}</code></div>
-            <div><strong>Time:</strong> ${activeEmergency.timestamp.toLocaleTimeString()}</div>
+            <div><strong>Time:</strong> ${activeEmergency.timestamp ? new Date(activeEmergency.timestamp).toLocaleTimeString() : 'Unknown'}</div>
             <div><strong>Status:</strong> <span class="text-red-600 font-semibold">🔴 ACTIVE</span></div>
+            ${activeEmergency.isOffline ? '<div class="text-yellow-600 text-sm">⚠️ Created offline - will sync when online</div>' : ''}
             <div id="responder-count" class="text-sm text-gray-600">Searching for responders...</div>
         </div>
         
@@ -436,8 +477,6 @@ function showActiveEmergency() {
 
     container.classList.remove('hidden');
     showMapWithLocation();
-    
-    // Set up chat functionality
     setupEmergencyChat();
 }
 
@@ -445,6 +484,8 @@ function setupEmergencyChat() {
     const chatInput = document.getElementById('chat-input');
     const sendButton = document.getElementById('send-message');
     const chatMessages = document.getElementById('chat-messages');
+
+    if (!chatInput || !sendButton || !chatMessages) return;
 
     function sendMessage() {
         const message = chatInput.value.trim();
@@ -459,8 +500,11 @@ function setupEmergencyChat() {
         chatInput.value = '';
         chatMessages.scrollTop = chatMessages.scrollHeight;
 
-        // Send to Firebase (simulated)
-        FirebaseAPI.addEmergencyMessage(activeEmergency.id, message, 'user');
+        // Send to Firebase if online
+        if (isOnline && currentUser) {
+            FirebaseAPI.addEmergencyMessage(activeEmergency.id, message, 'user')
+                .catch(error => console.error('Failed to send message:', error));
+        }
 
         // Simulate responder reply
         setTimeout(() => {
@@ -482,18 +526,21 @@ async function cancelEmergency() {
     if (!activeEmergency) return;
 
     try {
-        // Update status in Firebase
-        await FirebaseAPI.updateEmergencyStatus(activeEmergency.id, 'cancelled');
+        if (isOnline && !activeEmergency.isOffline) {
+            await FirebaseAPI.updateEmergencyStatus(activeEmergency.id, 'cancelled');
+        } else {
+            // Handle offline cancellation
+            removeOfflineEmergency(activeEmergency.id);
+        }
         
-        // Reset local state
         activeEmergency = null;
         document.getElementById('active-emergency').classList.add('hidden');
         document.getElementById('responder-section').classList.add('hidden');
         document.getElementById('map-container').classList.add('hidden');
         
         updateStatus('Emergency cancelled');
+        showNotification('Emergency cancelled successfully', 'success');
         
-        // Clean up map
         if (map) {
             map.remove();
             map = null;
@@ -501,7 +548,7 @@ async function cancelEmergency() {
         
     } catch (error) {
         console.error('Error cancelling emergency:', error);
-        alert('Failed to cancel emergency. Please try again.');
+        showNotification('Failed to cancel emergency. Please try again.', 'error');
     }
 }
 
@@ -511,7 +558,6 @@ function showMapWithLocation() {
     const mapContainer = document.getElementById('map-container');
     mapContainer.classList.remove('hidden');
 
-    // Initialize map
     if (map) {
         map.remove();
     }
@@ -522,29 +568,25 @@ function showMapWithLocation() {
         attribution: '© OpenStreetMap contributors'
     }).addTo(map);
 
-    // Add emergency location marker
     const emergencyMarker = L.marker([currentLocation.lat, currentLocation.lng])
         .addTo(map)
         .bindPopup(`🚨 Emergency Location<br>ID: ${activeEmergency ? activeEmergency.id : 'Unknown'}`)
         .openPopup();
 
-    // Add accuracy circle
     L.circle([currentLocation.lat, currentLocation.lng], {
-        radius: currentLocation.accuracy,
+        radius: currentLocation.accuracy || 100,
         color: 'red',
         fillColor: '#ff0000',
         fillOpacity: 0.1
     }).addTo(map);
 
-    // Add responder markers when available
     if (responders.length > 0) {
         responders.forEach(responder => {
             if (responder.location) {
-                const responderMarker = L.marker([responder.location.lat, responder.location.lng])
+                L.marker([responder.location.lat, responder.location.lng])
                     .addTo(map)
                     .bindPopup(`👨‍⚕️ ${responder.name}<br>${responder.specialization}<br>ETA: ${responder.eta} min`);
                 
-                // Draw line from responder to emergency
                 L.polyline([
                     [responder.location.lat, responder.location.lng],
                     [currentLocation.lat, currentLocation.lng]
@@ -554,7 +596,6 @@ function showMapWithLocation() {
     }
 }
 
-// Enhanced location handling
 function requestLocation() {
     updateLocationStatus('Getting your location...');
     
@@ -573,9 +614,9 @@ function requestLocation() {
                     `Located (±${Math.round(currentLocation.accuracy/1000*10)/10}km)`;
                 
                 updateLocationStatus(accuracyText);
+                showNotification('Location acquired successfully', 'success');
                 
-                // If there's an active emergency, update its location
-                if (activeEmergency) {
+                if (activeEmergency && isOnline) {
                     updateEmergencyLocation();
                 }
             },
@@ -591,7 +632,6 @@ function requestLocation() {
         );
     } else {
         updateLocationStatus('Location not supported');
-        // Fallback to Lusaka coordinates
         currentLocation = { 
             lat: -15.3875, 
             lng: 28.3228, 
@@ -599,6 +639,7 @@ function requestLocation() {
             timestamp: new Date(),
             isDefault: true
         };
+        showNotification('Using default location (Lusaka)', 'info');
     }
 }
 
@@ -618,8 +659,8 @@ function handleLocationError(error) {
     }
     
     updateLocationStatus(errorMessage);
+    showNotification(errorMessage, 'error');
     
-    // Use default location (Lusaka) as fallback
     currentLocation = { 
         lat: -15.3875, 
         lng: 28.3228, 
@@ -628,14 +669,13 @@ function handleLocationError(error) {
         isDefault: true
     };
     
-    // Show user-friendly message
     setTimeout(() => {
         updateLocationStatus('Using default location (Lusaka)');
     }, 3000);
 }
 
 async function updateEmergencyLocation() {
-    if (!activeEmergency || !currentLocation) return;
+    if (!activeEmergency || !currentLocation || activeEmergency.isOffline) return;
     
     try {
         await FirebaseAPI.updateEmergencyStatus(activeEmergency.id, 'active', {
@@ -651,7 +691,7 @@ async function updateEmergencyLocation() {
 
 function showNearbyHelp() {
     if (!currentLocation) {
-        alert('Location is required to show nearby help. Please enable location services.');
+        showNotification('Location is required to show nearby help. Please enable location services.', 'error');
         return;
     }
     
@@ -662,7 +702,6 @@ function showMapWithNearbyServices() {
     const mapContainer = document.getElementById('map-container');
     mapContainer.classList.remove('hidden');
 
-    // Initialize map if not exists
     if (map) {
         map.remove();
     }
@@ -673,13 +712,11 @@ function showMapWithNearbyServices() {
         attribution: '© OpenStreetMap contributors'
     }).addTo(map);
 
-    // Add user location
     L.marker([currentLocation.lat, currentLocation.lng])
         .addTo(map)
         .bindPopup('📍 Your Location')
         .openPopup();
 
-    // Add mock nearby services (in real app, this would come from database)
     const nearbyServices = [
         {
             name: 'University Teaching Hospital',
@@ -725,7 +762,6 @@ function showMapWithNearbyServices() {
             `);
     });
 
-    // Fit map to show all markers
     const group = new L.featureGroup([
         L.marker([currentLocation.lat, currentLocation.lng]),
         ...nearbyServices.map(s => L.marker([s.lat, s.lng]))
@@ -733,56 +769,83 @@ function showMapWithNearbyServices() {
     map.fitBounds(group.getBounds().pad(0.1));
 }
 
-function syncPendingData() {
-    // This function would sync any data that was created while offline
-    console.log('Syncing pending data...');
-    
-    // In a real app, you'd check for pending emergencies, messages, etc.
-    // stored in localStorage and sync them to Firebase
-    
-    if (activeEmergency && !activeEmergency.synced) {
-        // Re-attempt to sync the emergency
-        FirebaseAPI.createEmergency(activeEmergency)
-            .then(() => {
-                activeEmergency.synced = true;
-                console.log('Emergency synced successfully');
-            })
-            .catch(error => {
-                console.error('Failed to sync emergency:', error);
+// Offline data management
+function storeOfflineEmergency(emergency) {
+    try {
+        const offlineEmergencies = JSON.parse(localStorage.getItem('offlineEmergencies') || '[]');
+        offlineEmergencies.push(emergency);
+        localStorage.setItem('offlineEmergencies', JSON.stringify(offlineEmergencies));
+        
+        // Register for sync when online
+        if ('serviceWorker' in navigator && 'sync' in window.ServiceWorkerRegistration.prototype) {
+            navigator.serviceWorker.ready.then(registration => {
+                return registration.sync.register('emergency-sync');
             });
+        }
+    } catch (error) {
+        console.error('Failed to store offline emergency:', error);
     }
 }
 
-function listenToEmergencyUpdates(emergencyId) {
-    // This would listen for real-time updates from Firebase
-    console.log('Listening for emergency updates:', emergencyId);
+function removeOfflineEmergency(emergencyId) {
+    try {
+        const offlineEmergencies = JSON.parse(localStorage.getItem('offlineEmergencies') || '[]');
+        const filtered = offlineEmergencies.filter(e => e.id !== emergencyId);
+        localStorage.setItem('offlineEmergencies', JSON.stringify(filtered));
+    } catch (error) {
+        console.error('Failed to remove offline emergency:', error);
+    }
+}
+
+function updateEmergencyDisplay() {
+    if (activeEmergency) {
+        showActiveEmergency();
+    }
+}
+
+// Notification system
+function showNotification(message, type = 'info') {
+    // Remove existing notification
+    const existing = document.querySelector('.notification');
+    if (existing) {
+        existing.remove();
+    }
+
+    const notification = document.createElement('div');
+    notification.className = `notification ${type}`;
+    notification.textContent = message;
     
-    // Simulate periodic updates
-    const updateInterval = setInterval(() => {
-        if (!activeEmergency || activeEmergency.id !== emergencyId) {
-            clearInterval(updateInterval);
-            return;
-        }
-        
-        // Simulate status updates
-        const statuses = ['Dispatching', 'Responder assigned', 'Responder en route', 'Help arrived'];
-        const currentStatusIndex = statuses.findIndex(s => s === activeEmergency.status);
-        
-        if (currentStatusIndex < statuses.length - 1) {
-            const nextStatus = statuses[currentStatusIndex + 1];
-            activeEmergency.status = nextStatus;
-            updateStatus(nextStatus);
-        }
-    }, 30000); // Update every 30 seconds
+    document.body.appendChild(notification);
+    
+    // Show notification
+    setTimeout(() => {
+        notification.classList.add('show');
+    }, 100);
+    
+    // Hide notification after 4 seconds
+    setTimeout(() => {
+        notification.classList.remove('show');
+        setTimeout(() => {
+            if (notification.parentNode) {
+                notification.remove();
+            }
+        }, 300);
+    }, 4000);
 }
 
 // Utility functions
 function updateLocationStatus(text) {
-    document.getElementById('location-text').textContent = text;
+    const locationText = document.getElementById('location-text');
+    if (locationText) {
+        locationText.textContent = text;
+    }
 }
 
 function updateStatus(text) {
-    document.getElementById('status').textContent = text;
+    const status = document.getElementById('status');
+    if (status) {
+        status.textContent = text;
+    }
 }
 
 function showEmergencyModal(type, priority) {
@@ -818,19 +881,20 @@ function showEmergencyModal(type, priority) {
             <div class="bg-gray-100 p-3 rounded text-sm text-left">
                 <strong>Location Status:</strong><br>
                 ${currentLocation ? 
-                    `✅ Located (±${Math.round(currentLocation.accuracy)}m accuracy)` : 
+                    `✅ Located (±${Math.round(currentLocation.accuracy || 100)}m accuracy)` : 
                     '❌ Location not available'
                 }<br><br>
+                <strong>Connection Status:</strong><br>
+                ${isOnline ? '✅ Online - Full functionality available' : '⚠️ Offline - Limited functionality'}<br><br>
                 <strong>What happens next:</strong><br>
-                • Nearby responders will be notified<br>
-                • Emergency services will be contacted<br>
+                • ${isOnline ? 'Nearby responders will be notified' : 'Emergency will be stored and synced when online'}<br>
+                • Emergency services contact information will be provided<br>
                 • You'll receive real-time updates<br>
                 • Help typically arrives within 5-15 minutes
             </div>
         </div>
     `;
 
-    // Store emergency data for confirmation
     modal.dataset.type = type;
     modal.dataset.priority = priority;
     
@@ -839,17 +903,6 @@ function showEmergencyModal(type, priority) {
 
 function hideEmergencyModal() {
     document.getElementById('emergency-modal').classList.add('hidden');
-}
-
-// Export functions for use in other modules (if using ES6 modules)
-if (typeof module !== 'undefined' && module.exports) {
-    module.exports = {
-        initializeApp,
-        requestLocation,
-        showNearbyHelp,
-        confirmEmergency,
-        cancelEmergency
-    };
 }
 
 // Service Worker Registration for PWA functionality
@@ -865,17 +918,51 @@ if ('serviceWorker' in navigator) {
     });
 }
 
-// Push notification setup (when user grants permission)
+// Push notification setup
 async function requestNotificationPermission() {
     if ('Notification' in window) {
         const permission = await Notification.requestPermission();
         if (permission === 'granted') {
             console.log('Notification permission granted');
             return true;
+        } else {
+            console.log('Notification permission denied');
         }
     }
     return false;
 }
 
-// Call this during app initialization
-requestNotificationPermission();
+// Initialize notification permission on app load
+requestNotificationPermission().catch(console.error);
+
+// Handle emergency shortcuts from PWA
+function handleEmergencyShortcut() {
+    const urlParams = new URLSearchParams(window.location.search);
+    const emergency = urlParams.get('emergency');
+    const action = urlParams.get('action');
+    
+    if (emergency) {
+        setTimeout(() => {
+            const priority = emergency === 'medical' || emergency === 'fire' ? 'P1' : 'P2';
+            showEmergencyModal(emergency, priority);
+        }, 1000);
+    }
+    
+    if (action === 'find-help') {
+        setTimeout(() => {
+            showNearbyHelp();
+        }, 1000);
+    }
+}
+
+// Call shortcut handler after page load
+window.addEventListener('load', handleEmergencyShortcut);
+
+// Export functions for testing or external use
+window.EmergencyApp = {
+    requestLocation,
+    showNearbyHelp,
+    confirmEmergency,
+    cancelEmergency,
+    showNotification
+};

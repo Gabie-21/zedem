@@ -1,229 +1,564 @@
-// /sw.js
+// sw.js - Enhanced Service Worker for Zambia Emergency Response PWA
 
-const CACHE_NAME = 'emergency-response-v1.0';
-const URLS_TO_CACHE = [
-  '/',               // ensure root shell works offline
+const CACHE_NAME = 'zambia-emergency-v1.2.0';
+const STATIC_CACHE = 'static-v1.2.0';
+const DYNAMIC_CACHE = 'dynamic-v1.2.0';
+
+// Files to cache for offline functionality
+const STATIC_ASSETS = [
+  '/',
   '/index.html',
-  '/offline.html',
+  '/main.js',
+  '/firebase-config.js',
+  '/style.css',
   '/manifest.json',
-  '/css/style.css',
-  '/js/main.js',
-  '/js/firebase-config.js',
-
-  // Icons used by notifications & manifest (cache what you actually use)
-  '/icons/icon-72x72.png',
-  '/icons/icon-96x96.png',
-  '/icons/icon-128x128.png',
-  '/icons/icon-144x144.png',
-  '/icons/icon-152x152.png',
+  '/offline.html',
+  // Essential icons
   '/icons/icon-192x192.png',
-  '/icons/icon-384x384.png',
   '/icons/icon-512x512.png',
-  '/icons/badge-72x72.png',
-  '/icons/responder-icon.png',
-  '/icons/cancelled-icon.png',
-  '/icons/arrived-icon.png',
-  '/icons/resolved-icon.png',
-  '/icons/view-icon.png',
-  '/icons/dismiss-icon.png',
-  '/icons/alert-icon.png'
+  '/icons/badge-72x72.png'
 ];
 
-self.addEventListener('install', (event) => {
-  event.waitUntil(
-    caches.open(CACHE_NAME)
-      .then(cache => cache.addAll(URLS_TO_CACHE))
-      .then(() => self.skipWaiting())
-      .catch(err => console.error('SW install cache failed:', err))
-  );
-});
+// External resources to cache
+const EXTERNAL_RESOURCES = [
+  'https://cdn.tailwindcss.com',
+  'https://unpkg.com/leaflet@1.9.4/dist/leaflet.css',
+  'https://unpkg.com/leaflet@1.9.4/dist/leaflet.js'
+];
 
-self.addEventListener('activate', (event) => {
+// Firebase URLs to handle differently
+const FIREBASE_URLS = [
+  'https://www.gstatic.com/firebasejs/',
+  'https://firebase.googleapis.com/',
+  'https://firestore.googleapis.com/',
+  'https://identitytoolkit.googleapis.com/',
+  'https://securetoken.googleapis.com/'
+];
+
+// Install event - cache essential resources
+self.addEventListener('install', event => {
+  console.log('Service Worker: Installing...');
+  
   event.waitUntil(
     Promise.all([
-      caches.keys().then(keys =>
-        Promise.all(keys.filter(k => k !== CACHE_NAME).map(k => caches.delete(k)))
-      ),
-      // Clean old notifications (best-effort)
-      self.registration.getNotifications().then(notifs => {
-        const now = Date.now();
-        notifs.forEach(n => {
-          if (n.timestamp && (now - n.timestamp > 24 * 60 * 60 * 1000)) n.close();
-        });
-      })
+      // Cache static assets
+      caches.open(STATIC_CACHE)
+        .then(cache => {
+          console.log('Service Worker: Caching static assets');
+          return cache.addAll(STATIC_ASSETS);
+        }),
+      
+      // Cache external resources
+      caches.open(DYNAMIC_CACHE)
+        .then(cache => {
+          console.log('Service Worker: Caching external resources');
+          return cache.addAll(EXTERNAL_RESOURCES.filter(url => url));
+        })
     ])
+    .then(() => {
+      console.log('Service Worker: Installation complete');
+      return self.skipWaiting(); // Activate immediately
+    })
+    .catch(error => {
+      console.error('Service Worker: Installation failed', error);
+    })
   );
-  self.clients.claim();
 });
 
-self.addEventListener('fetch', (event) => {
-  if (event.request.method !== 'GET') return;
+// Activate event - clean up old caches
+self.addEventListener('activate', event => {
+  console.log('Service Worker: Activating...');
+  
+  event.waitUntil(
+    caches.keys()
+      .then(cacheNames => {
+        return Promise.all(
+          cacheNames.map(cacheName => {
+            if (cacheName !== STATIC_CACHE && cacheName !== DYNAMIC_CACHE) {
+              console.log('Service Worker: Deleting old cache', cacheName);
+              return caches.delete(cacheName);
+            }
+          })
+        );
+      })
+      .then(() => {
+        console.log('Service Worker: Claiming clients');
+        return self.clients.claim();
+      })
+      .catch(error => {
+        console.error('Service Worker: Activation failed', error);
+      })
+  );
+});
 
-  // Don’t cache Firebase/Google/API calls (network-first)
-  const url = event.request.url;
-  if (url.includes('firebase') || url.includes('googleapis') || url.includes('africastalking')) {
-    event.respondWith(
-      fetch(event.request).catch(() =>
-        new Response(
-          JSON.stringify({ error: 'offline', message: 'This feature requires internet connection' }),
-          { headers: { 'Content-Type': 'application/json' }, status: 503 }
-        )
-      )
-    );
+// Fetch event - network strategies
+self.addEventListener('fetch', event => {
+  const { request } = event;
+  const url = new URL(request.url);
+
+  // Skip non-GET requests
+  if (request.method !== 'GET') {
     return;
   }
 
-  // Cache-first for local app shell
-  event.respondWith(
-    caches.match(event.request).then(cached => {
-      if (cached) {
-        return cached;
-      }
-      return fetch(event.request)
-        .then(response => {
-          // Only cache basic same-origin OK responses
-          if (!response || response.status !== 200 || response.type !== 'basic') return response;
-          const copy = response.clone();
-          caches.open(CACHE_NAME).then(cache => cache.put(event.request, copy));
-          return response;
-        })
-        .catch(() => {
-          if (event.request.destination === 'document') {
-            return caches.match('/offline.html');
-          }
-          return new Response('Offline', { status: 503 });
-        });
-    })
-  );
-});
-
-// Push handler (single, dispatches by type)
-self.addEventListener('push', (event) => {
-  if (!event.data) return;
-  const data = event.data.json();
-
-  let title = data.title || 'Emergency Response';
-  let options = {
-    body: data.body || 'New notification',
-    icon: '/icons/icon-192x192.png',
-    badge: '/icons/badge-72x72.png',
-    data: data,
-    vibrate: [200, 100, 200]
-  };
-
-  // typed notifications
-  switch (data.type) {
-    case 'emergency_assigned':
-      title = '🚨 Emergency Response Assigned';
-      options = {
-        body: `Responder ${data.responderName} is heading to your emergency. ETA: ${data.eta} minutes.`,
-        icon: '/icons/responder-icon.png',
-        badge: '/icons/badge-72x72.png',
-        data: { emergencyId: data.emergencyId, type: 'emergency_assigned' },
-        actions: [{ action: 'track', title: 'Track Responder' }, { action: 'contact', title: 'Contact Responder' }],
-        tag: 'emergency-' + data.emergencyId,
-        requireInteraction: true,
-        vibrate: [200, 100, 200]
-      };
-      break;
-    case 'emergency_cancelled':
-      title = '❌ Emergency Cancelled';
-      options = {
-        body: `Emergency ${data.emergencyId} has been cancelled.`,
-        icon: '/icons/cancelled-icon.png',
-        badge: '/icons/badge-72x72.png',
-        data: { emergencyId: data.emergencyId, type: 'emergency_cancelled' },
-        tag: 'emergency-' + data.emergencyId,
-        vibrate: [100]
-      };
-      break;
-    case 'responder_arrived':
-      title = '✅ Help Has Arrived';
-      options = {
-        body: `${data.responderName} has arrived at your emergency location.`,
-        icon: '/icons/arrived-icon.png',
-        badge: '/icons/badge-72x72.png',
-        data: { emergencyId: data.emergencyId, type: 'responder_arrived' },
-        actions: [{ action: 'confirm', title: 'Confirm Arrival' }, { action: 'message', title: 'Send Message' }],
-        tag: 'emergency-' + data.emergencyId,
-        requireInteraction: true,
-        vibrate: [200, 100, 200, 100, 200]
-      };
-      break;
-    case 'emergency_resolved':
-      title = '✅ Emergency Resolved';
-      options = {
-        body: `Your emergency has been successfully resolved. Thank you for using our service.`,
-        icon: '/icons/resolved-icon.png',
-        badge: '/icons/badge-72x72.png',
-        data: { emergencyId: data.emergencyId, type: 'emergency_resolved' },
-        actions: [{ action: 'feedback', title: 'Leave Feedback' }, { action: 'view', title: 'View Details' }],
-        tag: 'emergency-' + data.emergencyId,
-        vibrate: [200]
-      };
-      break;
-    case 'system_alert':
-      title = '📢 System Alert';
-      options = {
-        body: data.message || 'Important system notification',
-        icon: '/icons/alert-icon.png',
-        badge: '/icons/badge-72x72.png',
-        data: { type: 'system_alert', alertId: data.alertId },
-        tag: 'system-alert',
-        vibrate: [100, 50, 100]
-      };
-      break;
+  // Handle different types of requests with appropriate strategies
+  if (isFirebaseRequest(url)) {
+    // Network first for Firebase requests
+    event.respondWith(handleFirebaseRequest(request));
+  } else if (isStaticAsset(url)) {
+    // Cache first for static assets
+    event.respondWith(handleStaticAsset(request));
+  } else if (isExternalResource(url)) {
+    // Stale while revalidate for external resources
+    event.respondWith(handleExternalResource(request));
+  } else if (isNavigationRequest(request)) {
+    // Network first with offline fallback for navigation
+    event.respondWith(handleNavigationRequest(request));
+  } else {
+    // Default strategy - cache first with network fallback
+    event.respondWith(handleDefaultRequest(request));
   }
-
-  event.waitUntil(self.registration.showNotification(title, options));
 });
 
-// Notification click (single handler)
-self.addEventListener('notificationclick', (event) => {
-  event.notification.close();
-  const data = event.notification.data || {};
-  let url = '/';
-
-  switch (event.action) {
-    case 'track':   url = `/?emergency=${data.emergencyId}&view=tracking`; break;
-    case 'contact': url = `/?emergency=${data.emergencyId}&view=contact`;  break;
-    case 'confirm': url = `/?emergency=${data.emergencyId}&action=confirm`;break;
-    case 'message': url = `/?emergency=${data.emergencyId}&view=chat`;     break;
-    case 'feedback':url = `/?emergency=${data.emergencyId}&view=feedback`; break;
-    case 'view':    url = `/?emergency=${data.emergencyId}`;               break;
-    case 'dismiss': return;
-    default:
-      if (data.emergencyId) url = `/?emergency=${data.emergencyId}`;
-  }
-
-  event.waitUntil(
-    clients.matchAll({ type: 'window', includeUncontrolled: true }).then(list => {
-      for (const client of list) {
-        if (client.url.includes(self.location.origin)) {
-          client.focus();
-          return client.navigate(url);
-        }
+// Strategy functions
+async function handleFirebaseRequest(request) {
+  try {
+    // Always try network first for Firebase
+    const networkResponse = await fetch(request);
+    
+    // Cache successful responses
+    if (networkResponse.ok) {
+      const cache = await caches.open(DYNAMIC_CACHE);
+      cache.put(request, networkResponse.clone());
+    }
+    
+    return networkResponse;
+  } catch (error) {
+    console.log('Service Worker: Firebase request failed, checking cache');
+    
+    // Try cache as fallback
+    const cachedResponse = await caches.match(request);
+    if (cachedResponse) {
+      return cachedResponse;
+    }
+    
+    // Return offline response for Firebase failures
+    return new Response(
+      JSON.stringify({ 
+        error: 'offline', 
+        message: 'This feature requires internet connection',
+        timestamp: new Date().toISOString()
+      }),
+      { 
+        headers: { 'Content-Type': 'application/json' },
+        status: 503
       }
-      return clients.openWindow(url);
-    })
-  );
-});
+    );
+  }
+}
 
-// Background sync (stub)
-self.addEventListener('sync', (event) => {
+async function handleStaticAsset(request) {
+  // Cache first strategy
+  const cachedResponse = await caches.match(request);
+  if (cachedResponse) {
+    return cachedResponse;
+  }
+  
+  try {
+    const networkResponse = await fetch(request);
+    
+    if (networkResponse.ok) {
+      const cache = await caches.open(STATIC_CACHE);
+      cache.put(request, networkResponse.clone());
+    }
+    
+    return networkResponse;
+  } catch (error) {
+    console.error('Service Worker: Failed to fetch static asset', request.url);
+    return new Response('Asset unavailable offline', { status: 404 });
+  }
+}
+
+async function handleExternalResource(request) {
+  try {
+    // Try cache first
+    const cachedResponse = await caches.match(request);
+    
+    // Fetch from network
+    const networkResponsePromise = fetch(request).then(response => {
+      if (response.ok) {
+        const cache = caches.open(DYNAMIC_CACHE);
+        cache.then(c => c.put(request, response.clone()));
+      }
+      return response;
+    });
+    
+    // Return cached version immediately if available, otherwise wait for network
+    return cachedResponse || await networkResponsePromise;
+  } catch (error) {
+    const cachedResponse = await caches.match(request);
+    return cachedResponse || new Response('Resource unavailable', { status: 404 });
+  }
+}
+
+async function handleNavigationRequest(request) {
+  try {
+    // Try network first for navigation requests
+    const networkResponse = await fetch(request);
+    return networkResponse;
+  } catch (error) {
+    // Serve offline page for navigation failures
+    const offlinePage = await caches.match('/offline.html');
+    return offlinePage || new Response('Offline', { status: 503 });
+  }
+}
+
+async function handleDefaultRequest(request) {
+  // Cache first with network fallback
+  const cachedResponse = await caches.match(request);
+  if (cachedResponse) {
+    return cachedResponse;
+  }
+  
+  try {
+    const networkResponse = await fetch(request);
+    
+    if (networkResponse.ok) {
+      const cache = await caches.open(DYNAMIC_CACHE);
+      cache.put(request, networkResponse.clone());
+    }
+    
+    return networkResponse;
+  } catch (error) {
+    return new Response('Content unavailable offline', { status: 404 });
+  }
+}
+
+// Helper functions
+function isFirebaseRequest(url) {
+  return FIREBASE_URLS.some(firebaseUrl => url.href.includes(firebaseUrl));
+}
+
+function isStaticAsset(url) {
+  return STATIC_ASSETS.some(asset => url.pathname === asset) ||
+         url.pathname.match(/\.(js|css|png|jpg|jpeg|gif|svg|woff|woff2|ttf|eot|ico)$/);
+}
+
+function isExternalResource(url) {
+  return url.origin !== self.location.origin;
+}
+
+function isNavigationRequest(request) {
+  return request.mode === 'navigate' || 
+         (request.method === 'GET' && request.headers.get('accept').includes('text/html'));
+}
+
+// Background sync for offline emergencies
+self.addEventListener('sync', event => {
+  console.log('Service Worker: Background sync event', event.tag);
+  
   if (event.tag === 'emergency-sync') {
-    event.waitUntil((async () => {
-      console.log('SW: background sync placeholder');
-    })());
+    event.waitUntil(syncOfflineEmergencies());
+  } else if (event.tag === 'responder-location-sync') {
+    event.waitUntil(syncResponderLocation());
   }
 });
 
-self.addEventListener('error', (e) => console.error('SW error', e));
-self.addEventListener('unhandledrejection', (e) => console.error('SW unhandled rejection', e));
+// Sync offline emergencies when back online
+async function syncOfflineEmergencies() {
+  try {
+    console.log('Service Worker: Syncing offline emergencies');
+    
+    // Get offline emergencies from clients
+    const clients = await self.clients.matchAll();
+    
+    for (const client of clients) {
+      // Request offline emergencies from each client
+      client.postMessage({
+        type: 'SYNC_OFFLINE_EMERGENCIES',
+        timestamp: Date.now()
+      });
+    }
+    
+    console.log('Service Worker: Offline emergency sync initiated');
+  } catch (error) {
+    console.error('Service Worker: Emergency sync failed', error);
+  }
+}
 
-console.log('Service Worker loaded');
-self.addEventListener('message', (event) => {
-  if (event.data && event.data.type === 'SKIP_WAITING') {
-    self.skipWaiting();
+// Sync responder location
+async function syncResponderLocation() {
+  try {
+    console.log('Service Worker: Syncing responder location');
+    
+    // This would typically get location and update in Firebase
+    // For now, we'll just notify clients
+    const clients = await self.clients.matchAll();
+    
+    for (const client of clients) {
+      client.postMessage({
+        type: 'SYNC_RESPONDER_LOCATION',
+        timestamp: Date.now()
+      });
+    }
+  } catch (error) {
+    console.error('Service Worker: Responder location sync failed', error);
+  }
+}
+
+// Push notification handling
+self.addEventListener('push', event => {
+  console.log('Service Worker: Push notification received');
+  
+  if (!event.data) {
+    return;
+  }
+
+  try {
+    const data = event.data.json();
+    event.waitUntil(handlePushNotification(data));
+  } catch (error) {
+    console.error('Service Worker: Failed to parse push data', error);
   }
 });
+
+// Handle different types of push notifications
+async function handlePushNotification(data) {
+  const { type, title, body, icon, badge, actions, requireInteraction, vibrate } = data;
+  
+  const options = {
+    body: body || 'Emergency notification',
+    icon: icon || '/icons/icon-192x192.png',
+    badge: badge || '/icons/badge-72x72.png',
+    requireInteraction: requireInteraction || false,
+    vibrate: vibrate || [200, 100, 200],
+    data: data,
+    tag: data.tag || 'emergency'
+  };
+  
+  // Add actions based on notification type
+  switch (type) {
+    case 'emergency_assigned':
+      options.actions = [
+        { action: 'track', title: '📍 Track Responder', icon: '/icons/track-icon.png' },
+        { action: 'contact', title: '📞 Contact', icon: '/icons/contact-icon.png' },
+        { action: 'dismiss', title: '✕ Dismiss', icon: '/icons/dismiss-icon.png' }
+      ];
+      options.requireInteraction = true;
+      options.vibrate = [200, 100, 200, 100, 200];
+      break;
+      
+    case 'responder_arrived':
+      options.actions = [
+        { action: 'confirm', title: '✓ Confirm Arrival', icon: '/icons/confirm-icon.png' },
+        { action: 'message', title: '💬 Message', icon: '/icons/message-icon.png' }
+      ];
+      options.requireInteraction = true;
+      options.vibrate = [300, 100, 300];
+      break;
+      
+    case 'emergency_resolved':
+      options.actions = [
+        { action: 'feedback', title: '⭐ Rate Service', icon: '/icons/feedback-icon.png' },
+        { action: 'dismiss', title: '✓ OK', icon: '/icons/ok-icon.png' }
+      ];
+      break;
+      
+    case 'system_alert':
+      options.actions = [
+        { action: 'view', title: '👀 View Details', icon: '/icons/view-icon.png' },
+        { action: 'dismiss', title: '✕ Dismiss', icon: '/icons/dismiss-icon.png' }
+      ];
+      break;
+      
+    default:
+      options.actions = [
+        { action: 'view', title: 'View', icon: '/icons/view-icon.png' },
+        { action: 'dismiss', title: 'Dismiss', icon: '/icons/dismiss-icon.png' }
+      ];
+  }
+  
+  await self.registration.showNotification(title || 'Emergency Alert', options);
+}
+
+// Handle notification clicks
+self.addEventListener('notificationclick', event => {
+  console.log('Service Worker: Notification clicked', event.action);
+  
+  event.notification.close();
+  
+  const data = event.notification.data || {};
+  const action = event.action;
+  
+  // Handle different actions
+  event.waitUntil(handleNotificationAction(action, data));
+});
+
+async function handleNotificationAction(action, data) {
+  const clients = await self.clients.matchAll({ type: 'window', includeUncontrolled: true });
+  
+  let targetUrl = '/';
+  
+  // Determine target URL based on action
+  switch (action) {
+    case 'track':
+      targetUrl = `/?emergency=${data.emergencyId}&view=tracking`;
+      break;
+    case 'contact':
+      targetUrl = `/?emergency=${data.emergencyId}&view=contact`;
+      break;
+    case 'confirm':
+      targetUrl = `/?emergency=${data.emergencyId}&action=confirm`;
+      break;
+    case 'message':
+      targetUrl = `/?emergency=${data.emergencyId}&view=chat`;
+      break;
+    case 'feedback':
+      targetUrl = `/?emergency=${data.emergencyId}&view=feedback`;
+      break;
+    case 'view':
+      targetUrl = data.emergencyId ? `/?emergency=${data.emergencyId}` : '/';
+      break;
+    case 'dismiss':
+      return; // Just close notification
+    default:
+      if (data.emergencyId) {
+        targetUrl = `/?emergency=${data.emergencyId}`;
+      }
+  }
+  
+  // Try to focus existing window or open new one
+  const existingClient = clients.find(client => client.url.includes(self.location.origin));
+  
+  if (existingClient) {
+    await existingClient.focus();
+    existingClient.postMessage({
+      type: 'NOTIFICATION_ACTION',
+      action: action,
+      data: data,
+      targetUrl: targetUrl
+    });
+  } else {
+    await self.clients.openWindow(targetUrl);
+  }
+}
+
+// Handle messages from main thread
+self.addEventListener('message', event => {
+  console.log('Service Worker: Message received', event.data);
+  
+  const { type, data } = event.data;
+  
+  switch (type) {
+    case 'SKIP_WAITING':
+      self.skipWaiting();
+      break;
+      
+    case 'CACHE_EMERGENCY':
+      handleCacheEmergency(data, event.ports[0]);
+      break;
+      
+    case 'REGISTER_SYNC':
+      if ('sync' in self.registration) {
+        self.registration.sync.register(data.tag);
+      }
+      break;
+      
+    case 'REQUEST_CACHE_UPDATE':
+      updateCache();
+      break;
+  }
+});
+
+// Cache emergency for offline sync
+async function handleCacheEmergency(emergency, port) {
+  try {
+    // Store emergency data in cache for later sync
+    const cache = await caches.open('offline-emergencies');
+    const emergencyData = new Response(JSON.stringify(emergency));
+    await cache.put(`emergency-${emergency.id}`, emergencyData);
+    
+    // Register for background sync
+    if ('sync' in self.registration) {
+      await self.registration.sync.register('emergency-sync');
+    }
+    
+    port.postMessage({
+      success: true,
+      message: 'Emergency cached for offline sync'
+    });
+  } catch (error) {
+    console.error('Service Worker: Failed to cache emergency', error);
+    port.postMessage({
+      success: false,
+      error: error.message
+    });
+  }
+}
+
+// Update cache with new content
+async function updateCache() {
+  try {
+    console.log('Service Worker: Updating cache');
+    
+    const cache = await caches.open(STATIC_CACHE);
+    await cache.addAll(STATIC_ASSETS);
+    
+    console.log('Service Worker: Cache updated successfully');
+  } catch (error) {
+    console.error('Service Worker: Cache update failed', error);
+  }
+}
+
+// Periodic cleanup of old cached data
+async function cleanupOldCache() {
+  const cacheNames = await caches.keys();
+  const oldCaches = cacheNames.filter(name => 
+    name.startsWith('zambia-emergency-') && name !== CACHE_NAME
+  );
+  
+  await Promise.all(oldCaches.map(name => caches.delete(name)));
+  console.log('Service Worker: Cleaned up old caches:', oldCaches);
+}
+
+// Cleanup old notifications
+async function cleanupOldNotifications() {
+  const notifications = await self.registration.getNotifications();
+  const now = Date.now();
+  const maxAge = 24 * 60 * 60 * 1000; // 24 hours
+  
+  notifications.forEach(notification => {
+    if (now - notification.timestamp > maxAge) {
+      notification.close();
+    }
+  });
+}
+
+// Periodic maintenance
+self.addEventListener('activate', event => {
+  event.waitUntil(Promise.all([
+    cleanupOldCache(),
+    cleanupOldNotifications()
+  ]));
+});
+
+// Error handling
+self.addEventListener('error', event => {
+  console.error('Service Worker: Global error', event.error);
+});
+
+self.addEventListener('unhandledrejection', event => {
+  console.error('Service Worker: Unhandled promise rejection', event.reason);
+});
+
+console.log('Service Worker: Zambia Emergency Response SW loaded and ready');
+
+// Export functions for testing (if in development)
+if (self.location.hostname === 'localhost') {
+  self.swTestAPI = {
+    handleFirebaseRequest,
+    handleStaticAsset,
+    handleNotificationAction,
+    syncOfflineEmergencies
+  };
+}

@@ -2,36 +2,349 @@
 <html lang="en">
 
 <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Offline - Zambia Emergency Response</title>
-    <link rel="stylesheet" href="/css/style.css" />
+    <meta name="theme-color" content="#dc2626">
     <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
         body {
-            font-family: system-ui, sans-serif;
-            padding: 2rem;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #065f46 0%, #047857 50%, #059669 100%);
+            color: white;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            padding: 20px;
+        }
+
+        .offline-container {
+            max-width: 400px;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 16px;
+            padding: 32px;
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+        }
+
+        .icon {
+            font-size: 4rem;
+            margin-bottom: 1rem;
+        }
+
+        h1 {
+            font-size: 1.8rem;
+            margin-bottom: 1rem;
+            color: #fef2f2;
+        }
+
+        p {
+            margin-bottom: 1.5rem;
+            line-height: 1.6;
+            color: rgba(255, 255, 255, 0.9);
+        }
+
+        .emergency-info {
+            background: rgba(220, 38, 38, 0.2);
+            border: 1px solid rgba(220, 38, 38, 0.3);
+            border-radius: 12px;
+            padding: 20px;
+            margin: 20px 0;
+        }
+
+        .emergency-numbers {
+            text-align: left;
+            margin: 15px 0;
+        }
+
+        .emergency-numbers h3 {
+            color: #fef2f2;
+            margin-bottom: 10px;
+        }
+
+        .number-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 8px 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .number-item:last-child {
+            border-bottom: none;
+        }
+
+        .number {
+            font-weight: bold;
+            color: #fef2f2;
+        }
+
+        .retry-btn {
+            background: #dc2626;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background-color 0.2s;
+            margin: 10px;
+        }
+
+        .retry-btn:hover {
+            background: #b91c1c;
+        }
+
+        .offline-tips {
+            background: rgba(59, 130, 246, 0.2);
+            border: 1px solid rgba(59, 130, 246, 0.3);
+            border-radius: 12px;
+            padding: 20px;
+            margin: 20px 0;
+            text-align: left;
+        }
+
+        .offline-tips h3 {
+            color: #dbeafe;
+            margin-bottom: 10px;
+        }
+
+        .offline-tips ul {
+            list-style: none;
+            padding-left: 0;
+        }
+
+        .offline-tips li {
+            margin: 8px 0;
+            padding-left: 20px;
+            position: relative;
+        }
+
+        .offline-tips li::before {
+            content: "•";
+            color: #60a5fa;
+            font-weight: bold;
+            position: absolute;
+            left: 0;
+        }
+
+        .status-indicator {
+            display: inline-block;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            margin-right: 8px;
+        }
+
+        .status-offline {
+            background: #ef4444;
+        }
+
+        .status-online {
+            background: #10b981;
+        }
+
+        @keyframes pulse {
+
+            0%,
+            100% {
+                opacity: 1;
+            }
+
+            50% {
+                opacity: 0.5;
+            }
+        }
+
+        .pulse {
+            animation: pulse 2s infinite;
+        }
+
+        @media (max-width: 480px) {
+            .offline-container {
+                padding: 24px;
+                margin: 10px;
+            }
+
+            .icon {
+                font-size: 3rem;
+            }
+
+            h1 {
+                font-size: 1.5rem;
+            }
         }
     </style>
 </head>
 
 <body>
-    <h1>⚠️ You’re offline</h1>
-    <p>The app shell is available, but some features need internet access.</p>
-    <ul>
-        <li>Try again once you’re connected.</li>
-        <li>Emergency reporting and maps require connectivity.</li>
-    </ul>
+    <div class="offline-container">
+        <div class="icon">📶❌</div>
+        <h1>You're Offline</h1>
+        <p>
+            <span class="status-indicator status-offline pulse"></span>
+            <span id="connection-status">No internet connection detected</span>
+        </p>
+
+        <div class="emergency-info">
+            <h3>🚨 Emergency Numbers (Zambia)</h3>
+            <div class="emergency-numbers">
+                <div class="number-item">
+                    <span>🏥 Medical Emergency</span>
+                    <span class="number">992</span>
+                </div>
+                <div class="number-item">
+                    <span>🔥 Fire Emergency</span>
+                    <span class="number">993</span>
+                </div>
+                <div class="number-item">
+                    <span>👮 Police</span>
+                    <span class="number">999</span>
+                </div>
+                <div class="number-item">
+                    <span>📞 General Emergency</span>
+                    <span class="number">911</span>
+                </div>
+            </div>
+            <p style="font-size: 0.9rem; margin-top: 15px; opacity: 0.8;">
+                📱 These numbers work even without internet connection
+            </p>
+        </div>
+
+        <div class="offline-tips">
+            <h3>💡 Offline Emergency Tips</h3>
+            <ul>
+                <li>Call emergency numbers directly from your phone</li>
+                <li>Send SMS to emergency contacts if calls fail</li>
+                <li>Move to a location with better signal if possible</li>
+                <li>Use nearby WiFi if available</li>
+                <li>Ask neighbors for help or to make calls</li>
+                <li>Your emergency will sync when connection returns</li>
+            </ul>
+        </div>
+
+        <button class="retry-btn" onclick="retryConnection()">
+            🔄 Try Again
+        </button>
+
+        <button class="retry-btn" onclick="goHome()" style="background: #059669;">
+            🏠 Go to App
+        </button>
+    </div>
+
+    <script>
+        // Check connection status
+        function updateConnectionStatus() {
+            const statusElement = document.getElementById('connection-status');
+            const indicator = document.querySelector('.status-indicator');
+
+            if (navigator.onLine) {
+                statusElement.textContent = 'Connection restored!';
+                indicator.classList.remove('status-offline', 'pulse');
+                indicator.classList.add('status-online');
+
+                // Auto-redirect after 2 seconds
+                setTimeout(() => {
+                    goHome();
+                }, 2000);
+            } else {
+                statusElement.textContent = 'No internet connection detected';
+                indicator.classList.remove('status-online');
+                indicator.classList.add('status-offline', 'pulse');
+            }
+        }
+
+        // Retry connection
+        function retryConnection() {
+            updateConnectionStatus();
+
+            if (navigator.onLine) {
+                // Try to reload the main app
+                window.location.href = '/';
+            } else {
+                // Show temporary feedback
+                const btn = event.target;
+                const originalText = btn.textContent;
+                btn.textContent = '⏳ Checking...';
+                btn.disabled = true;
+
+                setTimeout(() => {
+                    btn.textContent = originalText;
+                    btn.disabled = false;
+                    updateConnectionStatus();
+                }, 2000);
+            }
+        }
+
+        // Go to main app
+        function goHome() {
+            window.location.href = '/';
+        }
+
+        // Listen for online/offline events
+        window.addEventListener('online', updateConnectionStatus);
+        window.addEventListener('offline', updateConnectionStatus);
+
+        // Initial status check
+        updateConnectionStatus();
+
+        // Periodically check connection
+        setInterval(updateConnectionStatus, 5000);
+
+        // Service Worker messaging
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.addEventListener('message', event => {
+                if (event.data.type === 'CONNECTION_RESTORED') {
+                    updateConnectionStatus();
+                }
+            });
+        }
+
+        // Show install prompt if available
+        window.addEventListener('beforeinstallprompt', (e) => {
+            e.preventDefault();
+
+            const installBtn = document.createElement('button');
+            installBtn.className = 'retry-btn';
+            installBtn.style.background = '#7c3aed';
+            installBtn.textContent = '📱 Install App';
+            installBtn.onclick = () => {
+                e.prompt();
+                e.userChoice.then(result => {
+                    if (result.outcome === 'accepted') {
+                        console.log('User accepted the install prompt');
+                    }
+                });
+            };
+
+            document.querySelector('.offline-container').appendChild(installBtn);
+        });
+
+        // Emergency contact helper
+        function callEmergency(number) {
+            window.location.href = `tel:${number}`;
+        }
+
+        // Add click handlers to emergency numbers
+        document.addEventListener('DOMContentLoaded', () => {
+            const numbers = document.querySelectorAll('.number');
+            numbers.forEach(numberElement => {
+                numberElement.style.cursor = 'pointer';
+                numberElement.style.textDecoration = 'underline';
+                numberElement.addEventListener('click', () => {
+                    callEmergency(numberElement.textContent);
+                });
+            });
+        });
+    </script>
 </body>
 
 </html>
-
-    <script>
-        // Check if service worker is registered
-        if ('serviceWorker' in navigator) {
-            navigator.serviceWorker.ready.then((registration) => {
-                console.log('Service Worker is ready:', registration);
-            }).catch((error) => {
-                console.error('Service Worker registration failed:', error);
-            });
-        }
-    </script>
