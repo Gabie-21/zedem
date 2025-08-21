@@ -1,16 +1,13 @@
-// sw.js - Enhanced Service Worker for Zambia Emergency Response PWA
+// sw.js - Service Worker for Zambia Emergency Response PWA (Single HTML File Version)
 
-const CACHE_NAME = 'zambia-emergency-v1.2.0';
-const STATIC_CACHE = 'static-v1.2.0';
-const DYNAMIC_CACHE = 'dynamic-v1.2.0';
+const CACHE_NAME = 'zambia-emergency-single-file-v1.0.0';
+const STATIC_CACHE = 'static-single-file-v1.0.0';
+const DYNAMIC_CACHE = 'dynamic-single-file-v1.0.0';
 
 // Files to cache for offline functionality
 const STATIC_ASSETS = [
   '/',
   '/index.html',
-  '/js/main.js',
-  '/js/firebase-config.js',
-  '/css/style.css',
   '/manifest.json',
   '/offline.html',
   // Essential icons
@@ -74,7 +71,8 @@ self.addEventListener('activate', event => {
       .then(cacheNames => {
         return Promise.all(
           cacheNames.map(cacheName => {
-            if (cacheName !== STATIC_CACHE && cacheName !== DYNAMIC_CACHE) {
+            if (cacheName !== STATIC_CACHE && cacheName !== DYNAMIC_CACHE && 
+                cacheName !== CACHE_NAME) {
               console.log('Service Worker: Deleting old cache', cacheName);
               return caches.delete(cacheName);
             }
@@ -269,18 +267,30 @@ async function syncOfflineEmergencies() {
   try {
     console.log('Service Worker: Syncing offline emergencies');
     
-    // Get offline emergencies from clients
-    const clients = await self.clients.matchAll();
+    // Get offline emergencies from cache
+    const cache = await caches.open('offline-emergencies');
+    const keys = await cache.keys();
+    const emergencies = [];
     
+    for (const request of keys) {
+      const response = await cache.match(request);
+      if (response) {
+        const emergency = await response.json();
+        emergencies.push(emergency);
+      }
+    }
+    
+    // Notify clients about the offline emergencies
+    const clients = await self.clients.matchAll();
     for (const client of clients) {
-      // Request offline emergencies from each client
       client.postMessage({
-        type: 'SYNC_OFFLINE_EMERGENCIES',
+        type: 'OFFLINE_EMERGENCIES_SYNC',
+        emergencies: emergencies,
         timestamp: Date.now()
       });
     }
     
-    console.log('Service Worker: Offline emergency sync initiated');
+    console.log('Service Worker: Offline emergency sync completed', emergencies);
   } catch (error) {
     console.error('Service Worker: Emergency sync failed', error);
   }
@@ -319,6 +329,14 @@ self.addEventListener('push', event => {
     event.waitUntil(handlePushNotification(data));
   } catch (error) {
     console.error('Service Worker: Failed to parse push data', error);
+    // Try to show a basic notification
+    event.waitUntil(
+      self.registration.showNotification('Emergency Alert', {
+        body: 'New emergency notification',
+        icon: '/icons/icon-192x192.png',
+        badge: '/icons/badge-72x72.png'
+      })
+    );
   }
 });
 
@@ -340,9 +358,9 @@ async function handlePushNotification(data) {
   switch (type) {
     case 'emergency_assigned':
       options.actions = [
-        { action: 'track', title: '📍 Track Responder', icon: '/icons/track-icon.png' },
-        { action: 'contact', title: '📞 Contact', icon: '/icons/contact-icon.png' },
-        { action: 'dismiss', title: '✕ Dismiss', icon: '/icons/dismiss-icon.png' }
+        { action: 'track', title: '📍 Track Responder' },
+        { action: 'contact', title: '📞 Contact' },
+        { action: 'dismiss', title: '✕ Dismiss' }
       ];
       options.requireInteraction = true;
       options.vibrate = [200, 100, 200, 100, 200];
@@ -350,8 +368,8 @@ async function handlePushNotification(data) {
       
     case 'responder_arrived':
       options.actions = [
-        { action: 'confirm', title: '✓ Confirm Arrival', icon: '/icons/confirm-icon.png' },
-        { action: 'message', title: '💬 Message', icon: '/icons/message-icon.png' }
+        { action: 'confirm', title: '✓ Confirm Arrival' },
+        { action: 'message', title: '💬 Message' }
       ];
       options.requireInteraction = true;
       options.vibrate = [300, 100, 300];
@@ -359,22 +377,22 @@ async function handlePushNotification(data) {
       
     case 'emergency_resolved':
       options.actions = [
-        { action: 'feedback', title: '⭐ Rate Service', icon: '/icons/feedback-icon.png' },
-        { action: 'dismiss', title: '✓ OK', icon: '/icons/ok-icon.png' }
+        { action: 'feedback', title: '⭐ Rate Service' },
+        { action: 'dismiss', title: '✓ OK' }
       ];
       break;
       
     case 'system_alert':
       options.actions = [
-        { action: 'view', title: '👀 View Details', icon: '/icons/view-icon.png' },
-        { action: 'dismiss', title: '✕ Dismiss', icon: '/icons/dismiss-icon.png' }
+        { action: 'view', title: '👀 View Details' },
+        { action: 'dismiss', title: '✕ Dismiss' }
       ];
       break;
       
     default:
       options.actions = [
-        { action: 'view', title: 'View', icon: '/icons/view-icon.png' },
-        { action: 'dismiss', title: 'Dismiss', icon: '/icons/dismiss-icon.png' }
+        { action: 'view', title: 'View' },
+        { action: 'dismiss', title: 'Dismiss' }
       ];
   }
   
@@ -455,7 +473,7 @@ self.addEventListener('message', event => {
       break;
       
     case 'CACHE_EMERGENCY':
-      handleCacheEmergency(data, event.ports[0]);
+      handleCacheEmergency(data, event.ports && event.ports[0]);
       break;
       
     case 'REGISTER_SYNC':
@@ -483,16 +501,20 @@ async function handleCacheEmergency(emergency, port) {
       await self.registration.sync.register('emergency-sync');
     }
     
-    port.postMessage({
-      success: true,
-      message: 'Emergency cached for offline sync'
-    });
+    if (port) {
+      port.postMessage({
+        success: true,
+        message: 'Emergency cached for offline sync'
+      });
+    }
   } catch (error) {
     console.error('Service Worker: Failed to cache emergency', error);
-    port.postMessage({
-      success: false,
-      error: error.message
-    });
+    if (port) {
+      port.postMessage({
+        success: false,
+        error: error.message
+      });
+    }
   }
 }
 
@@ -514,7 +536,8 @@ async function updateCache() {
 async function cleanupOldCache() {
   const cacheNames = await caches.keys();
   const oldCaches = cacheNames.filter(name => 
-    name.startsWith('zambia-emergency-') && name !== CACHE_NAME
+    name.startsWith('zambia-emergency-') && name !== CACHE_NAME &&
+    name !== STATIC_CACHE && name !== DYNAMIC_CACHE
   );
   
   await Promise.all(oldCaches.map(name => caches.delete(name)));
