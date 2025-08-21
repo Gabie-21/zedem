@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Offline - Zambia Emergency Response</title>
+    <link rel="stylesheet" href="/css/style.css" />
+    <style>
+        body {
+            font-family: system-ui, sans-serif;
+            padding: 2rem;
+        }
+    </style>
+</head>
+
+<body>
+    <h1>⚠️ You’re offline</h1>
+    <p>The app shell is available, but some features need internet access.</p>
+    <ul>
+        <li>Try again once you’re connected.</li>
+        <li>Emergency reporting and maps require connectivity.</li>
+    </ul>
+</body>
+
+</html>
+
+    <script>
+        // Check if service worker is registered
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.ready.then((registration) => {
+                console.log('Service Worker is ready:', registration);
+            }).catch((error) => {
+                console.error('Service Worker registration failed:', error);
+            });
+        }
+    </script>
