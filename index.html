@@ -333,6 +333,75 @@
             font-size: 12px;
             margin-left: 8px;
         }
+
+        /* Responsive design improvements */
+        @media (max-width: 768px) {
+            .header-container {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+
+            .header-status {
+                margin-top: 0.5rem;
+                align-self: flex-start;
+            }
+
+            .emergency-btn {
+                min-height: 120px;
+                padding: 1rem;
+            }
+
+            .step-indicator {
+                width: 28px;
+                height: 28px;
+                font-size: 0.875rem;
+            }
+
+            .floating-action {
+                bottom: 1.5rem;
+                right: 1.5rem;
+                width: 50px;
+                height: 50px;
+            }
+
+            .user-type-btn {
+                padding: 1rem;
+            }
+
+            .rescue-center-card {
+                flex-direction: column;
+            }
+
+            .rescue-center-card .text-right {
+                text-align: left;
+                margin-top: 1rem;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .header-container {
+                padding: 0.75rem;
+            }
+
+            .emergency-btn {
+                min-height: 100px;
+                padding: 0.75rem;
+            }
+
+            .emergency-btn .text-4xl {
+                font-size: 1.875rem;
+            }
+
+            .emergency-btn .text-lg {
+                font-size: 1rem;
+            }
+
+            .step-indicator {
+                width: 24px;
+                height: 24px;
+                font-size: 0.75rem;
+            }
+        }
     </style>
 </head>
 
@@ -449,7 +518,7 @@
 
     <!-- Header -->
     <header class="bg-white shadow-lg">
-        <div class="container mx-auto px-4 py-3 flex justify-between items-center">
+        <div class="container mx-auto px-4 py-3 flex justify-between items-center header-container">
             <div class="flex items-center space-x-3">
                 <div class="bg-red-600 p-2 rounded-lg">
                     <i class="fas fa-ambulance text-white text-2xl"></i>
@@ -459,7 +528,7 @@
                     <p class="text-xs text-gray-600">Citizen Emergency Reporting</p>
                 </div>
             </div>
-            <div class="flex items-center space-x-4">
+            <div class="flex items-center space-x-4 header-status">
                 <div class="flex items-center space-x-2 bg-red-50 px-3 py-1 rounded-full">
                     <div class="w-3 h-3 bg-green-500 rounded-full pulse"></div>
                     <span class="text-sm font-medium" id="status">Ready to help</span>
@@ -558,7 +627,7 @@
                 <div id="recommended-center" class="hidden mb-4 p-4 bg-green-50 border border-green-200 rounded-lg">
                     <div class="flex items-center mb-2">
                         <h3 class="font-bold text-lg">Recommended Center</h3>
-                        <span class="recommended-badge">RECOMMENDED</span>
+                        <span class="recommended-badge">RECOMENDED</span>
                     </div>
                     <div class="rescue-center-card recommended-center">
                         <div class="flex justify-between items-start">
@@ -783,7 +852,7 @@
         <div class="container mx-auto px-4">
             <div class="flex flex-col md:flex-row justify-between items-center space-y-4 md:space-y-0">
                 <div class="text-sm text-gray-600">
-                    © 2023 Zambia Emergency Response System. All rights reserved.
+                    © 2025 Zambia Emergency Response System. All rights reserved. Developed by Edina Gabriella Ngalasa.
                 </div>
                 <div class="flex space-x-3">
                     <button class="text-sm bg-gray-100 hover:bg-gray-200 px-3 py-1 rounded-lg transition-colors">
@@ -930,6 +999,7 @@
         let map = null;
         let userMarker = null;
         let recommendedCenter = null;
+        let emergencyRefreshInterval = null;
 
         // DOM Elements
         const loginModal = document.getElementById('login-modal');
@@ -995,6 +1065,12 @@
             logoutBtn.classList.remove('hidden');
             contactInfoSection.classList.remove('hidden');
 
+            // Clear any existing refresh interval
+            if (emergencyRefreshInterval) {
+                clearInterval(emergencyRefreshInterval);
+                emergencyRefreshInterval = null;
+            }
+
             showNotification('Logged in as reporter', 'success');
         });
 
@@ -1028,7 +1104,13 @@
                 responderView.classList.remove('hidden');
                 logoutBtn.classList.remove('hidden');
 
+                // Load emergencies and set up auto-refresh
                 loadEmergencies();
+                if (emergencyRefreshInterval) {
+                    clearInterval(emergencyRefreshInterval);
+                }
+                emergencyRefreshInterval = setInterval(loadEmergencies, 5000); // Refresh every 5 seconds
+
                 showNotification('Logged in as responder', 'success');
             } else {
                 showNotification('Invalid credentials', 'error');
@@ -1048,6 +1130,12 @@
             logoutBtn.classList.remove('hidden');
             contactInfoSection.classList.add('hidden');
 
+            // Clear any existing refresh interval
+            if (emergencyRefreshInterval) {
+                clearInterval(emergencyRefreshInterval);
+                emergencyRefreshInterval = null;
+            }
+
             showNotification('Continuing as guest', 'info');
         });
 
@@ -1059,6 +1147,12 @@
             responderView.classList.add('hidden');
             loginModal.classList.remove('hidden');
             logoutBtn.classList.add('hidden');
+
+            // Clear refresh interval
+            if (emergencyRefreshInterval) {
+                clearInterval(emergencyRefreshInterval);
+                emergencyRefreshInterval = null;
+            }
 
             showNotification('Logged out successfully', 'info');
         });
@@ -1453,6 +1547,9 @@
                 return;
             }
 
+            // Sort by timestamp (newest first)
+            activeEmergencies.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+
             activeEmergencies.forEach(emergency => {
                 let severityClass = 'moderate';
                 if (emergency.severity.includes('Critical')) severityClass = 'critical';
@@ -1473,6 +1570,10 @@
                                 <span class="text-sm text-gray-500">${formatTime(emergency.timestamp)}</span>
                             </div>
                             <p class="text-sm mt-2"><i class="fas fa-map-marker-alt mr-1"></i> ${emergency.address} ${emergency.landmark ? `(${emergency.landmark})` : ''}</p>
+                            <p class="text-sm mt-1"><i class="fas fa-user mr-1"></i> Reported by: ${emergency.reporter.name}</p>
+                            ${emergency.reporter.canContact ? `
+                                <p class="text-sm mt-1"><i class="fas fa-phone mr-1"></i> Contact: ${emergency.reporter.phone}</p>
+                            ` : ''}
                         </div>
                         <div class="flex space-x-2">
                             ${emergency.reporter.canContact ? `
