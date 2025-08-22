@@ -402,6 +402,105 @@
                 font-size: 0.75rem;
             }
         }
+        /* Responsive styles for Rescue Centers section */
+@media (max-width: 768px) {
+  .rescue-center-card .flex.justify-between.items-start {
+    flex-direction: column;
+  }
+  
+  .rescue-center-card .text-right {
+    text-align: left;
+    margin-top: 1rem;
+    width: 100%;
+  }
+  
+  .rescue-center-card .flex.items-center.mt-2 {
+    flex-wrap: wrap;
+  }
+  
+  .rescue-center-card .flex.items-center.mt-2 > div {
+    margin-bottom: 0.5rem;
+    margin-right: 0.5rem;
+  }
+  
+  #recommended-center .rescue-center-card .flex.justify-between.items-start {
+    flex-direction: column;
+  }
+  
+  #recommended-center .text-right {
+    text-align: left;
+    margin-top: 1rem;
+  }
+  
+  #recommended-center .flex.items-center.mt-2 {
+    flex-wrap: wrap;
+  }
+  
+  #recommended-center .flex.items-center.mt-2 > div {
+    margin-bottom: 0.5rem;
+    margin-right: 0.5rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .rescue-center-card {
+    padding: 0.75rem;
+  }
+  
+  .rescue-center-card h3 {
+    font-size: 1.125rem;
+  }
+  
+  .rescue-center-card .text-xl {
+    font-size: 1.25rem;
+  }
+  
+  .rescue-center-card button {
+    padding: 0.5rem 0.75rem;
+    font-size: 0.875rem;
+  }
+  
+  #recommended-center {
+    padding: 0.75rem;
+  }
+  
+  #recommended-center h3 {
+    font-size: 1.125rem;
+  }
+  
+  #recommended-center .text-xl {
+    font-size: 1.25rem;
+  }
+  
+  #recommended-center button {
+    padding: 0.5rem 0.75rem;
+    font-size: 0.875rem;
+  }
+}
+
+/* Additional utility classes for better responsiveness */
+.flex-wrap-responsive {
+  flex-wrap: wrap;
+}
+
+.text-center-mobile {
+  text-align: left;
+}
+
+@media (max-width: 768px) {
+  .text-center-mobile {
+    text-align: center;
+  }
+  
+  .flex-responsive {
+    flex-direction: column;
+  }
+  
+  .px-responsive {
+    padding-left: 0.5rem;
+    padding-right: 0.5rem;
+  }
+}
     </style>
 </head>
 
