@@ -402,105 +402,106 @@
                 font-size: 0.75rem;
             }
         }
+
         /* Responsive styles for Rescue Centers section */
-@media (max-width: 768px) {
-  .rescue-center-card .flex.justify-between.items-start {
-    flex-direction: column;
-  }
-  
-  .rescue-center-card .text-right {
-    text-align: left;
-    margin-top: 1rem;
-    width: 100%;
-  }
-  
-  .rescue-center-card .flex.items-center.mt-2 {
-    flex-wrap: wrap;
-  }
-  
-  .rescue-center-card .flex.items-center.mt-2 > div {
-    margin-bottom: 0.5rem;
-    margin-right: 0.5rem;
-  }
-  
-  #recommended-center .rescue-center-card .flex.justify-between.items-start {
-    flex-direction: column;
-  }
-  
-  #recommended-center .text-right {
-    text-align: left;
-    margin-top: 1rem;
-  }
-  
-  #recommended-center .flex.items-center.mt-2 {
-    flex-wrap: wrap;
-  }
-  
-  #recommended-center .flex.items-center.mt-2 > div {
-    margin-bottom: 0.5rem;
-    margin-right: 0.5rem;
-  }
-}
+        @media (max-width: 768px) {
+            .rescue-center-card .flex.justify-between.items-start {
+                flex-direction: column;
+            }
 
-@media (max-width: 480px) {
-  .rescue-center-card {
-    padding: 0.75rem;
-  }
-  
-  .rescue-center-card h3 {
-    font-size: 1.125rem;
-  }
-  
-  .rescue-center-card .text-xl {
-    font-size: 1.25rem;
-  }
-  
-  .rescue-center-card button {
-    padding: 0.5rem 0.75rem;
-    font-size: 0.875rem;
-  }
-  
-  #recommended-center {
-    padding: 0.75rem;
-  }
-  
-  #recommended-center h3 {
-    font-size: 1.125rem;
-  }
-  
-  #recommended-center .text-xl {
-    font-size: 1.25rem;
-  }
-  
-  #recommended-center button {
-    padding: 0.5rem 0.75rem;
-    font-size: 0.875rem;
-  }
-}
+            .rescue-center-card .text-right {
+                text-align: left;
+                margin-top: 1rem;
+                width: 100%;
+            }
 
-/* Additional utility classes for better responsiveness */
-.flex-wrap-responsive {
-  flex-wrap: wrap;
-}
+            .rescue-center-card .flex.items-center.mt-2 {
+                flex-wrap: wrap;
+            }
 
-.text-center-mobile {
-  text-align: left;
-}
+            .rescue-center-card .flex.items-center.mt-2>div {
+                margin-bottom: 0.5rem;
+                margin-right: 0.5rem;
+            }
 
-@media (max-width: 768px) {
-  .text-center-mobile {
-    text-align: center;
-  }
-  
-  .flex-responsive {
-    flex-direction: column;
-  }
-  
-  .px-responsive {
-    padding-left: 0.5rem;
-    padding-right: 0.5rem;
-  }
-}
+            #recommended-center .rescue-center-card .flex.justify-between.items-start {
+                flex-direction: column;
+            }
+
+            #recommended-center .text-right {
+                text-align: left;
+                margin-top: 1rem;
+            }
+
+            #recommended-center .flex.items-center.mt-2 {
+                flex-wrap: wrap;
+            }
+
+            #recommended-center .flex.items-center.mt-2>div {
+                margin-bottom: 0.5rem;
+                margin-right: 0.5rem;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .rescue-center-card {
+                padding: 0.75rem;
+            }
+
+            .rescue-center-card h3 {
+                font-size: 1.125rem;
+            }
+
+            .rescue-center-card .text-xl {
+                font-size: 1.25rem;
+            }
+
+            .rescue-center-card button {
+                padding: 0.5rem 0.75rem;
+                font-size: 0.875rem;
+            }
+
+            #recommended-center {
+                padding: 0.75rem;
+            }
+
+            #recommended-center h3 {
+                font-size: 1.125rem;
+            }
+
+            #recommended-center .text-xl {
+                font-size: 1.25rem;
+            }
+
+            #recommended-center button {
+                padding: 0.5rem 0.75rem;
+                font-size: 0.875rem;
+            }
+        }
+
+        /* Additional utility classes for better responsiveness */
+        .flex-wrap-responsive {
+            flex-wrap: wrap;
+        }
+
+        .text-center-mobile {
+            text-align: left;
+        }
+
+        @media (max-width: 768px) {
+            .text-center-mobile {
+                text-align: center;
+            }
+
+            .flex-responsive {
+                flex-direction: column;
+            }
+
+            .px-responsive {
+                padding-left: 0.5rem;
+                padding-right: 0.5rem;
+            }
+        }
     </style>
 </head>
 
@@ -726,7 +727,7 @@
                 <div id="recommended-center" class="hidden mb-4 p-4 bg-green-50 border border-green-200 rounded-lg">
                     <div class="flex items-center mb-2">
                         <h3 class="font-bold text-lg">Recommended Center</h3>
-                        <span class="recommended-badge">RECOMENDED</span>
+                        <span class="recommended-badge">RECOMMENDED</span>
                     </div>
                     <div class="rescue-center-card recommended-center">
                         <div class="flex justify-between items-start">
@@ -986,7 +987,8 @@
                 </div>
                 <div class="text-3xl font-mono font-bold text-red-600 mb-4">991</div>
                 <div class="flex justify-center space-x-4">
-                    <button class="bg-red-600 hover:bg-red-700 text-white px-5 py-2 rounded-full font-semibold">
+                    <button id="confirm-call"
+                        class="bg-red-600 hover:bg-red-700 text-white px-5 py-2 rounded-full font-semibold">
                         <i class="fas fa-phone mr-1"></i> Call
                     </button>
                     <button id="cancel-call"
@@ -1117,6 +1119,7 @@
         let userMarker = null;
         let recommendedCenter = null;
         let emergencyRefreshInterval = null;
+        let currentCallNumber = null;
 
         // DOM Elements
         const loginModal = document.getElementById('login-modal');
@@ -1139,6 +1142,7 @@
         // Show login modal on page load
         document.addEventListener('DOMContentLoaded', function () {
             initMap();
+            setupCallButtons();
         });
 
         // User type selection
@@ -1585,14 +1589,8 @@
                 rescueCentersList.appendChild(card);
             });
 
-            // Add event listeners to call buttons
-            document.querySelectorAll('.call-center').forEach(btn => {
-                btn.addEventListener('click', function () {
-                    const phoneNumber = this.getAttribute('data-phone');
-                    document.getElementById('calling-details').innerHTML = `<p class="text-gray-600">Calling: ${phoneNumber}</p>`;
-                    document.getElementById('calling-modal').classList.remove('hidden');
-                });
-            });
+            // Set up the call buttons
+            setTimeout(setupCallButtons, 100);
         }
 
         // Display recommended center
@@ -1634,12 +1632,8 @@
 
             recommendedResources.innerHTML = resourcesHtml;
 
-            // Add event listener to call button
-            const callButton = recommendedCenterSection.querySelector('.call-center');
-            callButton.addEventListener('click', function () {
-                document.getElementById('calling-details').innerHTML = `<p class="text-gray-600">Calling: ${center.phone}</p>`;
-                document.getElementById('calling-modal').classList.remove('hidden');
-            });
+            // Set up the call button for the recommended center
+            setTimeout(setupCallButtons, 100);
         }
 
         // Load emergencies for responders
@@ -1708,16 +1702,10 @@
                 emergenciesList.appendChild(item);
             });
 
-            // Add event listeners
-            document.querySelectorAll('.call-reporter').forEach(btn => {
-                btn.addEventListener('click', function () {
-                    const phoneNumber = this.getAttribute('data-phone');
-                    const name = this.getAttribute('data-name');
-                    document.getElementById('calling-details').innerHTML = `<p class="text-gray-600">Calling: ${name} (${phoneNumber})</p>`;
-                    document.getElementById('calling-modal').classList.remove('hidden');
-                });
-            });
+            // Set up the call buttons
+            setTimeout(setupCallButtons, 100);
 
+            // Add event listeners for respond buttons
             document.querySelectorAll('.respond-btn').forEach(btn => {
                 btn.addEventListener('click', function () {
                     const emergencyId = parseInt(this.getAttribute('data-id'));
@@ -1768,10 +1756,60 @@
             return new Date(date).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
         }
 
-        // Floating action button
-        document.querySelector('.floating-action').addEventListener('click', function () {
-            document.getElementById('calling-details').innerHTML = `<p class="text-gray-600">Connecting to nearest dispatch center</p>`;
-            document.getElementById('calling-modal').classList.remove('hidden');
+        // Function to initiate phone call
+        function initiatePhoneCall(phoneNumber) {
+            // Clean the phone number (remove any non-digit characters except +)
+            const cleanedNumber = phoneNumber.replace(/[^\d+]/g, '');
+            currentCallNumber = cleanedNumber;
+
+            // For mobile devices, this will trigger the phone dialer
+            // For desktop, it won't do anything, so we'll show a message
+            if (/Android|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)) {
+                // Mobile device - directly initiate the call
+                window.location.href = `tel:${cleanedNumber}`;
+            } else {
+                // Desktop device - show the number and instructions
+                document.getElementById('calling-details').innerHTML = `
+                    <p class="text-gray-600">Call: ${phoneNumber}</p>
+                    <p class="text-sm text-gray-500 mt-2">On a mobile device, this would automatically dial the number.</p>
+                `;
+                document.getElementById('calling-modal').classList.remove('hidden');
+            }
+        }
+
+        // Set up call buttons
+        function setupCallButtons() {
+            // Add event listeners to all call buttons for rescue centers
+            document.querySelectorAll('.call-center').forEach(btn => {
+                btn.addEventListener('click', function () {
+                    const phoneNumber = this.getAttribute('data-phone');
+                    initiatePhoneCall(phoneNumber);
+                });
+            });
+
+            // Add event listeners to call reporter buttons for responders
+            document.querySelectorAll('.call-reporter').forEach(btn => {
+                btn.addEventListener('click', function () {
+                    const phoneNumber = this.getAttribute('data-phone');
+                    const name = this.getAttribute('data-name');
+                    document.getElementById('calling-details').innerHTML = `<p class="text-gray-600">Calling: ${name} (${phoneNumber})</p>`;
+                    initiatePhoneCall(phoneNumber);
+                });
+            });
+
+            // Add event listener to emergency call button
+            document.querySelector('.floating-action').addEventListener('click', function () {
+                document.getElementById('calling-details').innerHTML = `<p class="text-gray-600">Connecting to emergency services</p>`;
+                initiatePhoneCall('991');
+            });
+        }
+
+        // Confirm call button
+        document.getElementById('confirm-call').addEventListener('click', function () {
+            if (currentCallNumber) {
+                window.location.href = `tel:${currentCallNumber}`;
+            }
+            document.getElementById('calling-modal').classList.add('hidden');
         });
 
         // Cancel call button
