@@ -65,6 +65,13 @@
             z-index: 1;
         }
 
+        #emergency-map {
+            height: 400px;
+            width: 100%;
+            border-radius: 12px;
+            z-index: 1;
+        }
+
         .notification {
             position: fixed;
             top: 20px;
@@ -334,6 +341,164 @@
             margin-left: 8px;
         }
 
+        /* Emergency type radio buttons */
+        .emergency-type-radio {
+            display: none;
+        }
+
+        .emergency-type-label {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 1.5rem;
+            border: 2px solid #e5e7eb;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-align: center;
+            background: white;
+        }
+
+        .emergency-type-radio:checked+.emergency-type-label {
+            border-color: #dc2626;
+            background-color: #fef2f2;
+            box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.1);
+        }
+
+        .emergency-type-label:hover {
+            border-color: #dc2626;
+        }
+
+        .emergency-type-icon {
+            font-size: 2.5rem;
+            margin-bottom: 0.5rem;
+        }
+
+        /* Required field indicator */
+        .required-field::after {
+            content: "*";
+            color: #dc2626;
+            margin-left: 3px;
+        }
+
+        /* Form sections */
+        .form-section {
+            display: none;
+        }
+
+        .form-section.active {
+            display: block;
+        }
+
+        /* Image preview styles */
+        .image-preview-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-top: 10px;
+        }
+
+        .image-preview {
+            position: relative;
+            width: 100px;
+            height: 100px;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .image-preview img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .image-preview .remove-image {
+            position: absolute;
+            top: 5px;
+            right: 5px;
+            background: rgba(255, 255, 255, 0.8);
+            border-radius: 50%;
+            width: 20px;
+            height: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            font-size: 12px;
+        }
+
+        /* Emergency image in responder view */
+        .emergency-image {
+            width: 100%;
+            border-radius: 8px;
+            margin-top: 10px;
+            max-height: 200px;
+            object-fit: cover;
+        }
+
+        /* Map modal */
+        .map-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.8);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 2000;
+        }
+
+        .map-modal-content {
+            background: white;
+            border-radius: 16px;
+            width: 90%;
+            max-width: 800px;
+            height: 80%;
+            padding: 20px;
+            position: relative;
+        }
+
+        .close-modal {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            background: #f3f4f6;
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            z-index: 10;
+        }
+
+        /* Dispatch modal */
+        .dispatch-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.8);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 2000;
+        }
+
+        .dispatch-modal-content {
+            background: white;
+            border-radius: 16px;
+            width: 90%;
+            max-width: 500px;
+            padding: 20px;
+            position: relative;
+        }
+
         /* Responsive design improvements */
         @media (max-width: 768px) {
             .header-container {
@@ -376,6 +541,19 @@
                 text-align: left;
                 margin-top: 1rem;
             }
+
+            .emergency-type-label {
+                padding: 1rem;
+            }
+
+            .emergency-type-icon {
+                font-size: 2rem;
+            }
+
+            .map-modal-content {
+                height: 70%;
+                width: 95%;
+            }
         }
 
         @media (max-width: 480px) {
@@ -400,6 +578,19 @@
                 width: 24px;
                 height: 24px;
                 font-size: 0.75rem;
+            }
+
+            .emergency-type-label {
+                padding: 0.75rem;
+            }
+
+            .emergency-type-icon {
+                font-size: 1.75rem;
+            }
+
+            .image-preview {
+                width: 80px;
+                height: 80px;
             }
         }
 
@@ -510,8 +701,13 @@
     <div id="login-modal" class="modal">
         <div class="modal-content">
             <div class="p-6 border-b border-gray-200">
-                <h2 class="text-2xl font-bold">Welcome to Zambia Emergency Response</h2>
-                <p class="text-gray-600">Please choose how you want to use the system</p>
+                <div class="flex justify-center mb-4">
+                    <div class="bg-red-600 p-3 rounded-full">
+                        <i class="fas fa-ambulance text-white text-3xl"></i>
+                    </div>
+                </div>
+                <h2 class="text-2xl font-bold text-center">Welcome to Zambia Emergency Response</h2>
+                <p class="text-gray-600 text-center mt-2">Please choose how you want to use the system</p>
             </div>
 
             <div class="p-6">
@@ -543,7 +739,7 @@
 
                 <div id="reporter-login" class="hidden">
                     <div class="mb-4">
-                        <label class="block text-sm font-medium text-gray-700 mb-1">Phone Number</label>
+                        <label class="block text-sm font-medium text-gray-700 mb-1 required-field">Phone Number</label>
                         <input type="tel" id="reporter-phone"
                             class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                             placeholder="+260 XXX XXX XXX">
@@ -556,7 +752,7 @@
 
                 <div id="responder-login" class="hidden">
                     <div class="mb-4">
-                        <label class="block text-sm font-medium text-gray-700 mb-1">Organization</label>
+                        <label class="block text-sm font-medium text-gray-700 mb-1 required-field">Organization</label>
                         <select id="responder-org"
                             class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
                             <option value="">Select your organization</option>
@@ -568,14 +764,14 @@
                     </div>
 
                     <div class="mb-4">
-                        <label class="block text-sm font-medium text-gray-700 mb-1">Email Address</label>
+                        <label class="block text-sm font-medium text-gray-700 mb-1 required-field">Email Address</label>
                         <input type="email" id="responder-email"
                             class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                             placeholder="your@email.com">
                     </div>
 
                     <div class="mb-4">
-                        <label class="block text-sm font-medium text-gray-700 mb-1">Password</label>
+                        <label class="block text-sm font-medium text-gray-700 mb-1 required-field">Password</label>
                         <input type="password" id="responder-password"
                             class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                             placeholder="Enter your password">
@@ -659,10 +855,10 @@
                         <div class="step-indicator">3</div>
                         <div class="step-indicator">4</div>
                     </div>
-                    <div class="text-sm font-medium text-gray-600">Step 2 of 4</div>
+                    <div class="text-sm font-medium text-gray-600">Step <span id="current-step">2</span> of 4</div>
                 </div>
                 <div class="progress-bar">
-                    <div class="progress-fill" style="width: 50%"></div>
+                    <div class="progress-fill" id="progress-fill" style="width: 25%"></div>
                 </div>
                 <div class="flex justify-between mt-2 text-xs text-gray-600">
                     <div>Emergency Type</div>
@@ -672,225 +868,260 @@
                 </div>
             </div>
 
-            <!-- Emergency Type Selection -->
-            <div class="emergency-card p-5 mb-6">
-                <h2 class="text-xl font-bold mb-2">What type of emergency are you reporting?</h2>
-                <p class="text-gray-600 mb-5">Select the category that best matches your emergency situation</p>
-
-                <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
-                    <button class="emergency-btn" data-type="medical">
-                        <div class="text-4xl mb-2 text-red-600">🏥</div>
-                        <div class="text-lg font-semibold">MEDICAL</div>
-                        <div class="text-xs opacity-80">Injury or illness</div>
-                    </button>
-
-                    <button class="emergency-btn" data-type="fire">
-                        <div class="text-4xl mb-2 text-orange-600">🔥</div>
-                        <div class="text-lg font-semibold">FIRE</div>
-                        <div class="text-xs opacity-80">Fire or explosion</div>
-                    </button>
-
-                    <button class="emergency-btn" data-type="police">
-                        <div class="text-4xl mb-2 text-blue-600">👮</div>
-                        <div class="text-lg font-semibold">POLICE</div>
-                        <div class="text-xs opacity-80">Crime in progress</div>
-                    </button>
-
-                    <button class="emergency-btn" data-type="general">
-                        <div class="text-4xl mb-2 text-yellow-600">⚠️</div>
-                        <div class="text-lg font-semibold">OTHER</div>
-                        <div class="text-xs opacity-80">Other emergency</div>
-                    </button>
-                </div>
-
-                <div class="bg-blue-50 p-4 rounded-lg border border-blue-200">
-                    <div class="flex">
-                        <div class="flex-shrink-0">
-                            <i class="fas fa-info-circle text-blue-500 text-xl mt-1"></i>
-                        </div>
-                        <div class="ml-3">
-                            <h3 class="text-sm font-medium text-blue-800">Need immediate help?</h3>
-                            <div class="mt-2 text-sm text-blue-700">
-                                <p>If this is a life-threatening emergency, call <strong>991</strong> directly for
-                                    fastest response.</p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Nearest Rescue Centers -->
-            <div class="emergency-card p-5 mb-6">
-                <h2 class="text-xl font-bold mb-2">Nearest Rescue Centers</h2>
-                <p class="text-gray-600 mb-5">Based on your location and emergency type, we recommend contacting:</p>
-
-                <div id="recommended-center" class="hidden mb-4 p-4 bg-green-50 border border-green-200 rounded-lg">
-                    <div class="flex items-center mb-2">
-                        <h3 class="font-bold text-lg">Recommended Center</h3>
-                        <span class="recommended-badge">RECOMMENDED</span>
-                    </div>
-                    <div class="rescue-center-card recommended-center">
-                        <div class="flex justify-between items-start">
-                            <div>
-                                <h3 id="recommended-name" class="font-bold text-lg"></h3>
-                                <p id="recommended-distance" class="text-gray-600"></p>
-                                <div id="recommended-resources" class="flex items-center mt-2"></div>
-                            </div>
-                            <div class="text-right">
-                                <div id="recommended-phone" class="text-xl font-bold text-red-600"></div>
-                                <button
-                                    class="mt-2 bg-red-600 hover:bg-red-700 text-white px-3 py-1 rounded-lg text-sm call-center">
-                                    <i class="fas fa-phone mr-1"></i> Call Now
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="space-y-4" id="rescue-centers-list">
-                    <!-- Rescue centers will be populated here -->
-                </div>
-
-                <button id="refresh-centers"
-                    class="mt-4 w-full py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg text-sm font-medium transition-colors flex items-center justify-center">
-                    <i class="fas fa-sync-alt mr-2"></i> Refresh Nearby Centers
+            <!-- Form Navigation -->
+            <div class="flex justify-between mb-6">
+                <button id="prev-step"
+                    class="px-4 py-2 bg-gray-200 hover:bg-gray-300 text-gray-800 rounded-lg font-medium flex items-center hidden">
+                    <i class="fas fa-arrow-left mr-2"></i> Back
+                </button>
+                <button id="next-step"
+                    class="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg font-medium flex items-center ml-auto">
+                    Next <i class="fas fa-arrow-right ml-2"></i>
                 </button>
             </div>
 
-            <!-- Emergency Details Form -->
-            <div class="emergency-card p-5 mb-6">
-                <h2 class="text-xl font-bold mb-2">Emergency Details</h2>
-                <p class="text-gray-600 mb-5">Please provide details about the emergency situation</p>
+            <!-- Emergency Type Selection -->
+            <div id="step-1" class="form-section active">
+                <div class="emergency-card p-5 mb-6">
+                    <h2 class="text-xl font-bold mb-2">What type of emergency are you reporting?</h2>
+                    <p class="text-gray-600 mb-5">Select the category that best matches your emergency situation</p>
 
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-1">How many people are
-                            affected?</label>
-                        <select id="affected-people"
-                            class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
-                            <option>1 person</option>
-                            <option>2-5 people</option>
-                            <option>6-10 people</option>
-                            <option>More than 10 people</option>
-                            <option>Not sure</option>
-                        </select>
-                    </div>
-
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-1">Emergency severity</label>
-                        <select id="emergency-severity"
-                            class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
-                            <option>Critical - Life threatening</option>
-                            <option>Serious - Needs urgent attention</option>
-                            <option>Moderate - Needs medical attention</option>
-                            <option>Minor - First aid required</option>
-                        </select>
-                    </div>
-                </div>
-
-                <div class="mb-4">
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Emergency description</label>
-                    <textarea id="emergency-description"
-                        class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                        rows="3" placeholder="Please describe what happened..."></textarea>
-                </div>
-
-                <div class="mb-4">
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Upload photos (optional)</label>
-                    <div class="flex items-center justify-center w-full">
-                        <label
-                            class="flex flex-col items-center justify-center w-full h-32 border-2 border-dashed border-gray-300 rounded-lg cursor-pointer hover:bg-gray-50">
-                            <div class="flex flex-col items-center justify-center pt-5 pb-6">
-                                <i class="fas fa-cloud-upload-alt text-gray-400 text-2xl mb-2"></i>
-                                <p class="text-xs text-gray-500">Click to upload or drag and drop</p>
-                            </div>
-                            <input type="file" class="hidden" multiple>
+                    <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+                        <input type="radio" name="emergency-type" id="medical-emergency" value="medical"
+                            class="emergency-type-radio">
+                        <label for="medical-emergency" class="emergency-type-label">
+                            <div class="emergency-type-icon text-red-600">🏥</div>
+                            <div class="text-lg font-semibold">MEDICAL</div>
+                            <div class="text-xs opacity-80">Injury or illness</div>
                         </label>
+
+                        <input type="radio" name="emergency-type" id="fire-emergency" value="fire"
+                            class="emergency-type-radio">
+                        <label for="fire-emergency" class="emergency-type-label">
+                            <div class="emergency-type-icon text-orange-600">🔥</div>
+                            <div class="text-lg font-semibold">FIRE</div>
+                            <div class="text-xs opacity-80">Fire or explosion</div>
+                        </label>
+
+                        <input type="radio" name="emergency-type" id="police-emergency" value="police"
+                            class="emergency-type-radio">
+                        <label for="police-emergency" class="emergency-type-label">
+                            <div class="emergency-type-icon text-blue-600">👮</div>
+                            <div class="text-lg font-semibold">POLICE</div>
+                            <div class="text-xs opacity-80">Crime in progress</div>
+                        </label>
+
+                        <input type="radio" name="emergency-type" id="general-emergency" value="general"
+                            class="emergency-type-radio">
+                        <label for="general-emergency" class="emergency-type-label">
+                            <div class="emergency-type-icon text-yellow-600">⚠️</div>
+                            <div class="text-lg font-semibold">OTHER</div>
+                            <div class="text-xs opacity-80">Other emergency</div>
+                        </label>
+                    </div>
+
+                    <div class="bg-blue-50 p-4 rounded-lg border border-blue-200">
+                        <div class="flex">
+                            <div class="flex-shrink-0">
+                                <i class="fas fa-info-circle text-blue-500 text-xl mt-1"></i>
+                            </div>
+                            <div class="ml-3">
+                                <h3 class="text-sm font-medium text-blue-800">Need immediate help?</h3>
+                                <div class="mt-2 text-sm text-blue-700">
+                                    <p>If this is a life-threatening emergency, call <strong>991</strong> directly for
+                                        fastest response.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Emergency Details Form -->
+            <div id="step-2" class="form-section">
+                <div class="emergency-card p-5 mb-6">
+                    <h2 class="text-xl font-bold mb-2">Emergency Details</h2>
+                    <p class="text-gray-600 mb-5">Please provide details about the emergency situation</p>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1 required-field">How many people
+                                are affected?</label>
+                            <select id="affected-people"
+                                class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                                <option value="">Select number</option>
+                                <option>1 person</option>
+                                <option>2-5 people</option>
+                                <option>6-10 people</option>
+                                <option>More than 10 people</option>
+                                <option>Not sure</option>
+                            </select>
+                        </div>
+
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1 required-field">Emergency
+                                severity</label>
+                            <select id="emergency-severity"
+                                class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                                <option value="">Select severity</option>
+                                <option>Critical - Life threatening</option>
+                                <option>Serious - Needs urgent attention</option>
+                                <option>Moderate - Needs medical attention</option>
+                                <option>Minor - First aid required</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="mb-4">
+                        <label class="block text-sm font-medium text-gray-700 mb-1 required-field">Emergency
+                            description</label>
+                        <textarea id="emergency-description"
+                            class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                            rows="3" placeholder="Please describe what happened..."></textarea>
+                    </div>
+
+                    <div class="mb-4">
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Upload photos (optional)</label>
+                        <div class="flex items-center justify-center w-full">
+                            <label
+                                class="flex flex-col items-center justify-center w-full h-32 border-2 border-dashed border-gray-300 rounded-lg cursor-pointer hover:bg-gray-50">
+                                <div class="flex flex-col items-center justify-center pt-5 pb-6">
+                                    <i class="fas fa-cloud-upload-alt text-gray-400 text-2xl mb-2"></i>
+                                    <p class="text-xs text-gray-500">Click to upload or drag and drop</p>
+                                </div>
+                                <input id="image-upload" type="file" class="hidden" multiple accept="image/*">
+                            </label>
+                        </div>
+                        <div id="image-preview-container" class="image-preview-container mt-3"></div>
                     </div>
                 </div>
             </div>
 
             <!-- Location Information -->
-            <div class="emergency-card p-5 mb-6">
-                <h2 class="text-xl font-bold mb-2">Emergency Location</h2>
-                <p class="text-gray-600 mb-5">Please verify your location or provide address details</p>
+            <div id="step-3" class="form-section">
+                <div class="emergency-card p-5 mb-6">
+                    <h2 class="text-xl font-bold mb-2">Emergency Location</h2>
+                    <p class="text-gray-600 mb-5">Please verify your location or provide address details</p>
 
-                <div class="mb-4">
-                    <div id="map" class="mb-4"></div>
-                    <div class="flex justify-between items-center">
-                        <div class="text-sm text-gray-600">
-                            <i class="fas fa-location-dot text-red-600 mr-1"></i>
-                            <span id="location-status">Detecting your location...</span>
+                    <div class="mb-4">
+                        <div id="map" class="mb-4"></div>
+                        <div class="flex justify-between items-center">
+                            <div class="text-sm text-gray-600">
+                                <i class="fas fa-location-dot text-red-600 mr-1"></i>
+                                <span id="location-status">Detecting your location...</span>
+                            </div>
+                            <button id="refresh-location" class="text-sm text-blue-600 font-medium flex items-center">
+                                <i class="fas fa-sync-alt mr-1"></i> Refresh Location
+                            </button>
                         </div>
-                        <button id="refresh-location" class="text-sm text-blue-600 font-medium flex items-center">
-                            <i class="fas fa-sync-alt mr-1"></i> Refresh Location
-                        </button>
-                    </div>
-                </div>
-
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-1">Address line</label>
-                        <input type="text" id="emergency-address"
-                            class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                            placeholder="Street address">
                     </div>
 
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-1">Landmark (optional)</label>
-                        <input type="text" id="emergency-landmark"
-                            class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                            placeholder="Nearby landmark">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1 required-field">Address
+                                line</label>
+                            <input type="text" id="emergency-address"
+                                class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                placeholder="Street address">
+                        </div>
+
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Landmark (optional)</label>
+                            <input type="text" id="emergency-landmark"
+                                class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                placeholder="Nearby landmark">
+                        </div>
                     </div>
                 </div>
             </div>
 
             <!-- Contact Information -->
-            <div class="emergency-card p-5 mb-6" id="contact-info-section">
-                <h2 class="text-xl font-bold mb-2">Your Contact Information</h2>
-                <p class="text-gray-600 mb-5">Please provide your contact details for follow-up</p>
+            <div id="step-4" class="form-section">
+                <div class="emergency-card p-5 mb-6" id="contact-info-section">
+                    <h2 class="text-xl font-bold mb-2">Your Contact Information</h2>
+                    <p class="text-gray-600 mb-5">Please provide your contact details for follow-up</p>
 
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-1">Your name</label>
-                        <input type="text" id="reporter-name"
-                            class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                            placeholder="Full name">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Your name</label>
+                            <input type="text" id="reporter-name"
+                                class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                placeholder="Full name">
+                        </div>
+
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Phone number</label>
+                            <input type="tel" id="reporter-contact-phone"
+                                class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                placeholder="+260 XXX XXX XXX">
+                        </div>
                     </div>
 
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-1">Phone number</label>
-                        <input type="tel" id="reporter-contact-phone"
-                            class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                            placeholder="+260 XXX XXX XXX">
+                    <div class="mb-4">
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Can responders contact you?</label>
+                        <div class="flex space-x-4 mt-2">
+                            <label class="inline-flex items-center">
+                                <input type="radio" class="form-radio text-blue-600" name="contact" value="yes" checked>
+                                <span class="ml-2">Yes, contact me</span>
+                            </label>
+                            <label class="inline-flex items-center">
+                                <input type="radio" class="form-radio text-blue-600" name="contact" value="no">
+                                <span class="ml-2">No, report anonymously</span>
+                            </label>
+                        </div>
                     </div>
                 </div>
 
-                <div class="mb-4">
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Can responders contact you?</label>
-                    <div class="flex space-x-4 mt-2">
-                        <label class="inline-flex items-center">
-                            <input type="radio" class="form-radio text-blue-600" name="contact" value="yes" checked>
-                            <span class="ml-2">Yes, contact me</span>
-                        </label>
-                        <label class="inline-flex items-center">
-                            <input type="radio" class="form-radio text-blue-600" name="contact" value="no">
-                            <span class="ml-2">No, report anonymously</span>
-                        </label>
-                    </div>
-                </div>
-            </div>
+                <!-- Nearest Rescue Centers -->
+                <div class="emergency-card p-5 mb-6">
+                    <h2 class="text-xl font-bold mb-2">Nearest Rescue Centers</h2>
+                    <p class="text-gray-600 mb-5">Based on your location and emergency type, we recommend contacting:
+                    </p>
 
-            <!-- Action Buttons -->
-            <div class="flex justify-between">
-                <button
-                    class="px-6 py-3 bg-gray-200 hover:bg-gray-300 text-gray-800 rounded-lg font-medium flex items-center">
-                    <i class="fas fa-arrow-left mr-2"></i> Back
-                </button>
-                <button id="submit-emergency"
-                    class="px-6 py-3 bg-red-600 hover:bg-red-700 text-white rounded-lg font-medium flex items-center">
-                    Report Emergency <i class="fas fa-arrow-right ml-2"></i>
-                </button>
+                    <div id="recommended-center" class="hidden mb-4 p-4 bg-green-50 border border-green-200 rounded-lg">
+                        <div class="flex items-center mb-2">
+                            <h3 class="font-bold text-lg">Recommended Center</h3>
+                            <span class="recommended-badge">RECOMMENDED</span>
+                        </div>
+                        <div class="rescue-center-card recommended-center">
+                            <div class="flex justify-between items-start">
+                                <div>
+                                    <h3 id="recommended-name" class="font-bold text-lg"></h3>
+                                    <p id="recommended-distance" class="text-gray-600"></p>
+                                    <div id="recommended-resources" class="flex items-center mt-2"></div>
+                                </div>
+                                <div class="text-right">
+                                    <div id="recommended-phone" class="text-xl font-bold text-red-600"></div>
+                                    <button
+                                        class="mt-2 bg-red-600 hover:bg-red-700 text-white px-3 py-1 rounded-lg text-sm call-center">
+                                        <i class="fas fa-phone mr-1"></i> Call Now
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="space-y-4" id="rescue-centers-list">
+                        <!-- Rescue centers will be populated here -->
+                    </div>
+
+                    <button id="refresh-centers"
+                        class="mt-4 w-full py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg text-sm font-medium transition-colors flex items-center justify-center">
+                        <i class="fas fa-sync-alt mr-2"></i> Refresh Nearby Centers
+                    </button>
+                </div>
+
+                <!-- Submit Button -->
+                <div class="flex justify-between">
+                    <button
+                        class="px-6 py-3 bg-gray-200 hover:bg-gray-300 text-gray-800 rounded-lg font-medium flex items-center">
+                        <i class="fas fa-arrow-left mr-2"></i> Back
+                    </button>
+                    <button id="submit-emergency"
+                        class="px-6 py-3 bg-red-600 hover:bg-red-700 text-white rounded-lg font-medium flex items-center">
+                        Report Emergency <i class="fas fa-arrow-right ml-2"></i>
+                    </button>
+                </div>
             </div>
         </div>
     </main>
@@ -933,12 +1164,12 @@
                 <h3 class="text-lg font-bold mb-4">Response Tools</h3>
 
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <button
+                    <button id="view-map-btn"
                         class="px-4 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium flex items-center justify-center">
                         <i class="fas fa-map-marker-alt mr-2"></i> View on Map
                     </button>
 
-                    <button
+                    <button id="dispatch-unit-btn"
                         class="px-4 py-3 bg-green-600 hover:bg-green-700 text-white rounded-lg font-medium flex items-center justify-center">
                         <i class="fas fa-ambulance mr-2"></i> Dispatch Unit
                     </button>
@@ -997,6 +1228,48 @@
                     </button>
                 </div>
             </div>
+        </div>
+    </div>
+
+    <!-- Map Modal -->
+    <div id="map-modal" class="map-modal hidden">
+        <div class="map-modal-content">
+            <div class="close-modal">
+                <i class="fas fa-times"></i>
+            </div>
+            <h3 class="text-xl font-bold mb-4">Emergency Location Map</h3>
+            <div id="emergency-map"></div>
+        </div>
+    </div>
+
+    <!-- Dispatch Modal -->
+    <div id="dispatch-modal" class="dispatch-modal hidden">
+        <div class="dispatch-modal-content">
+            <div class="close-modal">
+                <i class="fas fa-times"></i>
+            </div>
+            <h3 class="text-xl font-bold mb-4">Dispatch Emergency Unit</h3>
+            <div class="mb-4">
+                <label class="block text-sm font-medium text-gray-700 mb-1 required-field">Select Unit</label>
+                <select id="dispatch-unit"
+                    class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                    <option value="">Select a response unit</option>
+                    <option value="unit-1">Ambulance Unit 1</option>
+                    <option value="unit-2">Ambulance Unit 2</option>
+                    <option value="unit-3">Police Patrol 1</option>
+                    <option value="unit-4">Fire Truck 1</option>
+                </select>
+            </div>
+            <div class="mb-4">
+                <label class="block text-sm font-medium text-gray-700 mb-1">Additional Notes</label>
+                <textarea id="dispatch-notes"
+                    class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    rows="3" placeholder="Add any special instructions..."></textarea>
+            </div>
+            <button id="confirm-dispatch"
+                class="w-full bg-green-600 hover:bg-green-700 text-white py-2 px-4 rounded-lg font-semibold">
+                Confirm Dispatch
+            </button>
         </div>
     </div>
 
@@ -1120,6 +1393,10 @@
         let recommendedCenter = null;
         let emergencyRefreshInterval = null;
         let currentCallNumber = null;
+        let currentStep = 1;
+        let uploadedImages = [];
+        let emergencyMap = null;
+        let selectedEmergencyForDispatch = null;
 
         // DOM Elements
         const loginModal = document.getElementById('login-modal');
@@ -1138,12 +1415,333 @@
         const respondedEmergenciesEl = document.getElementById('responded-emergencies');
         const resolvedEmergenciesEl = document.getElementById('resolved-emergencies');
         const contactInfoSection = document.getElementById('contact-info-section');
+        const prevStepBtn = document.getElementById('prev-step');
+        const nextStepBtn = document.getElementById('next-step');
+        const currentStepEl = document.getElementById('current-step');
+        const progressFill = document.getElementById('progress-fill');
+        const formSections = document.querySelectorAll('.form-section');
+        const imageUpload = document.getElementById('image-upload');
+        const imagePreviewContainer = document.getElementById('image-preview-container');
+        const viewMapBtn = document.getElementById('view-map-btn');
+        const dispatchUnitBtn = document.getElementById('dispatch-unit-btn');
+        const mapModal = document.getElementById('map-modal');
+        const dispatchModal = document.getElementById('dispatch-modal');
+        const confirmDispatchBtn = document.getElementById('confirm-dispatch');
+        const emergencyMapContainer = document.getElementById('emergency-map');
 
         // Show login modal on page load
         document.addEventListener('DOMContentLoaded', function () {
             initMap();
             setupCallButtons();
+            setupFormNavigation();
+            setupImageUpload();
+            setupModalEvents();
         });
+
+        // Setup image upload functionality
+        function setupImageUpload() {
+            imageUpload.addEventListener('change', function (e) {
+                const files = e.target.files;
+                if (!files || files.length === 0) return;
+
+                for (let i = 0; i < files.length; i++) {
+                    const file = files[i];
+                    if (!file.type.match('image.*')) continue;
+
+                    const reader = new FileReader();
+                    reader.onload = function (e) {
+                        const imageData = e.target.result;
+                        uploadedImages.push(imageData);
+
+                        // Create preview
+                        const previewDiv = document.createElement('div');
+                        previewDiv.className = 'image-preview';
+                        previewDiv.innerHTML = `
+                            <img src="${imageData}" alt="Uploaded image">
+                            <div class="remove-image" data-index="${uploadedImages.length - 1}">
+                                <i class="fas fa-times"></i>
+                            </div>
+                        `;
+                        imagePreviewContainer.appendChild(previewDiv);
+
+                        // Add event listener to remove button
+                        const removeBtn = previewDiv.querySelector('.remove-image');
+                        removeBtn.addEventListener('click', function () {
+                            const index = parseInt(this.getAttribute('data-index'));
+                            uploadedImages.splice(index, 1);
+                            imagePreviewContainer.removeChild(previewDiv);
+
+                            // Update indices for remaining remove buttons
+                            const remainingButtons = imagePreviewContainer.querySelectorAll('.remove-image');
+                            remainingButtons.forEach((btn, idx) => {
+                                btn.setAttribute('data-index', idx);
+                            });
+                        });
+                    };
+                    reader.readAsDataURL(file);
+                }
+
+                // Reset the file input
+                imageUpload.value = '';
+            });
+        }
+
+        // Setup modal events
+        function setupModalEvents() {
+            // Close modals when clicking the close button
+            document.querySelectorAll('.close-modal').forEach(btn => {
+                btn.addEventListener('click', function () {
+                    mapModal.classList.add('hidden');
+                    dispatchModal.classList.add('hidden');
+                });
+            });
+
+            // Close modals when clicking outside the content
+            mapModal.addEventListener('click', function (e) {
+                if (e.target === mapModal) {
+                    mapModal.classList.add('hidden');
+                }
+            });
+
+            dispatchModal.addEventListener('click', function (e) {
+                if (e.target === dispatchModal) {
+                    dispatchModal.classList.add('hidden');
+                }
+            });
+
+            // View map button
+            viewMapBtn.addEventListener('click', function () {
+                // Check if an emergency is selected
+                const selectedEmergency = document.querySelector('.emergency-item.selected');
+                if (!selectedEmergency) {
+                    showNotification('Please select an emergency first', 'error');
+                    return;
+                }
+
+                const emergencyId = parseInt(selectedEmergency.getAttribute('data-id'));
+                const emergency = emergencyDB.emergencies.find(e => e.id === emergencyId);
+
+                if (emergency) {
+                    showEmergencyMap(emergency);
+                    mapModal.classList.remove('hidden');
+                }
+            });
+
+            // Dispatch unit button
+            dispatchUnitBtn.addEventListener('click', function () {
+                // Check if an emergency is selected
+                const selectedEmergency = document.querySelector('.emergency-item.selected');
+                if (!selectedEmergency) {
+                    showNotification('Please select an emergency first', 'error');
+                    return;
+                }
+
+                const emergencyId = parseInt(selectedEmergency.getAttribute('data-id'));
+                selectedEmergencyForDispatch = emergencyDB.emergencies.find(e => e.id === emergencyId);
+
+                if (selectedEmergencyForDispatch) {
+                    dispatchModal.classList.remove('hidden');
+                }
+            });
+
+            // Confirm dispatch
+            confirmDispatchBtn.addEventListener('click', function () {
+                const unit = document.getElementById('dispatch-unit').value;
+                const notes = document.getElementById('dispatch-notes').value;
+
+                if (!unit) {
+                    showNotification('Please select a unit to dispatch', 'error');
+                    return;
+                }
+
+                // Update emergency status
+                selectedEmergencyForDispatch.status = 'dispatched';
+                selectedEmergencyForDispatch.dispatchedUnit = unit;
+                selectedEmergencyForDispatch.dispatchNotes = notes;
+                selectedEmergencyForDispatch.dispatchTime = new Date();
+
+                showNotification(`Unit ${unit} has been dispatched to the emergency`, 'success');
+                dispatchModal.classList.add('hidden');
+
+                // Refresh emergencies list
+                loadEmergencies();
+            });
+        }
+
+        // Show emergency on map
+        function showEmergencyMap(emergency) {
+            // Clear previous map if it exists
+            if (emergencyMap) {
+                emergencyMap.remove();
+            }
+
+            // Create new map
+            emergencyMap = L.map('emergency-map').setView([emergency.location.lat, emergency.location.lng], 15);
+
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: '© OpenStreetMap contributors'
+            }).addTo(emergencyMap);
+
+            // Add marker for emergency location
+            L.marker([emergency.location.lat, emergency.location.lng])
+                .addTo(emergencyMap)
+                .bindPopup(`
+                    <strong>${emergency.type.toUpperCase()} Emergency</strong><br>
+                    ${emergency.address}<br>
+                    ${emergency.landmark ? `Landmark: ${emergency.landmark}<br>` : ''}
+                    Reported: ${formatTime(emergency.timestamp)}
+                `)
+                .openPopup();
+
+            // Add nearby rescue centers to the map
+            emergencyDB.rescueCenters.forEach(center => {
+                let iconColor;
+                switch (center.type) {
+                    case 'hospital': iconColor = 'red'; break;
+                    case 'police': iconColor = 'blue'; break;
+                    case 'fire': iconColor = 'orange'; break;
+                    default: iconColor = 'gray';
+                }
+
+                const icon = L.divIcon({
+                    className: 'custom-icon',
+                    html: `<div style="background-color: ${iconColor}; width: 16px; height: 16px; border-radius: 50%; border: 2px solid white; box-shadow: 0 0 10px rgba(0,0,0,0.5);"></div>`,
+                    iconSize: [16, 16],
+                    iconAnchor: [8, 8]
+                });
+
+                L.marker([center.location.lat, center.location.lng], { icon: icon })
+                    .addTo(emergencyMap)
+                    .bindPopup(`
+                        <strong>${center.name}</strong><br>
+                        ${center.address}<br>
+                        Phone: ${center.phone}
+                    `);
+            });
+        }
+
+        // Setup form navigation
+        function setupFormNavigation() {
+            prevStepBtn.addEventListener('click', goToPreviousStep);
+            nextStepBtn.addEventListener('click', goToNextStep);
+        }
+
+        // Navigate to next step
+        function goToNextStep() {
+            // Validate current step
+            if (!validateCurrentStep()) {
+                return;
+            }
+
+            if (currentStep < 4) {
+                // Hide current section
+                document.getElementById(`step-${currentStep}`).classList.remove('active');
+
+                // Show next section
+                currentStep++;
+                document.getElementById(`step-${currentStep}`).classList.add('active');
+
+                // Update UI
+                updateStepUI();
+
+                // If we're on the final step, load rescue centers
+                if (currentStep === 4) {
+                    loadRescueCenters();
+                }
+            } else {
+                // Submit the form if we're on the last step
+                document.getElementById('submit-emergency').click();
+            }
+        }
+
+        // Navigate to previous step
+        function goToPreviousStep() {
+            if (currentStep > 1) {
+                // Hide current section
+                document.getElementById(`step-${currentStep}`).classList.remove('active');
+
+                // Show previous section
+                currentStep--;
+                document.getElementById(`step-${currentStep}`).classList.add('active');
+
+                // Update UI
+                updateStepUI();
+            }
+        }
+
+        // Update step UI elements
+        function updateStepUI() {
+            // Update progress bar
+            const progressPercentage = (currentStep / 4) * 100;
+            progressFill.style.width = `${progressPercentage}%`;
+
+            // Update step indicator
+            currentStepEl.textContent = currentStep;
+
+            // Update navigation buttons
+            if (currentStep === 1) {
+                prevStepBtn.classList.add('hidden');
+            } else {
+                prevStepBtn.classList.remove('hidden');
+            }
+
+            if (currentStep === 4) {
+                nextStepBtn.textContent = 'Submit Report';
+                nextStepBtn.innerHTML = 'Submit Report <i class="fas fa-check ml-2"></i>';
+            } else {
+                nextStepBtn.textContent = 'Next';
+                nextStepBtn.innerHTML = 'Next <i class="fas fa-arrow-right ml-2"></i>';
+            }
+        }
+
+        // Validate current step
+        function validateCurrentStep() {
+            switch (currentStep) {
+                case 1: // Emergency type
+                    const selectedType = document.querySelector('input[name="emergency-type"]:checked');
+                    if (!selectedType) {
+                        showNotification('Please select an emergency type', 'error');
+                        return false;
+                    }
+                    currentEmergencyType = selectedType.value;
+                    return true;
+
+                case 2: // Emergency details
+                    const affectedPeople = document.getElementById('affected-people').value;
+                    const severity = document.getElementById('emergency-severity').value;
+                    const description = document.getElementById('emergency-description').value;
+
+                    if (!affectedPeople) {
+                        showNotification('Please indicate how many people are affected', 'error');
+                        return false;
+                    }
+
+                    if (!severity) {
+                        showNotification('Please select the emergency severity', 'error');
+                        return false;
+                    }
+
+                    if (!description.trim()) {
+                        showNotification('Please provide a description of the emergency', 'error');
+                        return false;
+                    }
+
+                    return true;
+
+                case 3: // Location
+                    const address = document.getElementById('emergency-address').value;
+
+                    if (!address.trim()) {
+                        showNotification('Please provide the emergency location address', 'error');
+                        return false;
+                    }
+
+                    return true;
+
+                default:
+                    return true;
+            }
+        }
 
         // User type selection
         document.querySelectorAll('.user-type-btn').forEach(btn => {
@@ -1278,27 +1876,6 @@
             showNotification('Logged out successfully', 'info');
         });
 
-        // Emergency type selection
-        document.querySelectorAll('.emergency-btn').forEach(btn => {
-            btn.addEventListener('click', function () {
-                // Remove any existing active class
-                document.querySelectorAll('.emergency-btn').forEach(b => {
-                    b.style.border = 'none';
-                    b.style.boxShadow = '0 4px 6px rgba(0, 0, 0, 0.1)';
-                });
-
-                // Add active indication
-                this.style.border = '3px solid #dc2626';
-                this.style.boxShadow = '0 6px 12px rgba(220, 38, 38, 0.2)';
-
-                currentEmergencyType = this.getAttribute('data-type');
-                showNotification(`${currentEmergencyType.toUpperCase()} emergency selected`, 'success');
-
-                // Update recommended centers based on emergency type
-                loadRescueCenters();
-            });
-        });
-
         // Submit emergency
         document.getElementById('submit-emergency').addEventListener('click', function () {
             if (!currentEmergencyType) {
@@ -1344,7 +1921,8 @@
                 },
                 status: 'reported',
                 timestamp: new Date(),
-                responder: null
+                responder: null,
+                images: [...uploadedImages] // Store uploaded images
             };
 
             // Add to simulated database
@@ -1354,18 +1932,26 @@
 
             // Reset form
             setTimeout(() => {
-                document.querySelectorAll('.emergency-btn').forEach(b => {
-                    b.style.border = 'none';
-                    b.style.boxShadow = '0 4px 6px rgba(0, 0, 0, 0.1)';
-                });
+                // Reset form fields
+                document.querySelectorAll('input[name="emergency-type"]').forEach(input => input.checked = false);
+                document.getElementById('affected-people').value = '';
+                document.getElementById('emergency-severity').value = '';
                 document.getElementById('emergency-description').value = '';
                 document.getElementById('emergency-address').value = '';
                 document.getElementById('emergency-landmark').value = '';
+                imagePreviewContainer.innerHTML = '';
+                uploadedImages = [];
 
                 if (currentUser.type !== 'guest') {
                     document.getElementById('reporter-name').value = '';
                     document.getElementById('reporter-contact-phone').value = '';
                 }
+
+                // Reset to first step
+                document.getElementById(`step-${currentStep}`).classList.remove('active');
+                currentStep = 1;
+                document.getElementById(`step-${currentStep}`).classList.add('active');
+                updateStepUI();
 
                 currentEmergencyType = null;
 
@@ -1428,7 +2014,9 @@
                         document.getElementById('location-status').textContent = 'Location detected';
 
                         // Update rescue centers based on location
-                        loadRescueCenters();
+                        if (currentStep === 4) {
+                            loadRescueCenters();
+                        }
                     },
                     function (error) {
                         console.error('Geolocation error:', error);
@@ -1443,7 +2031,9 @@
                         document.getElementById('location-status').textContent = 'Using approximate location';
 
                         // Update rescue centers based on default location
-                        loadRescueCenters();
+                        if (currentStep === 4) {
+                            loadRescueCenters();
+                        }
                     },
                     {
                         enableHighAccuracy: true,
@@ -1463,7 +2053,9 @@
                 document.getElementById('location-status').textContent = 'Geolocation not supported';
 
                 // Update rescue centers based on default location
-                loadRescueCenters();
+                if (currentStep === 4) {
+                    loadRescueCenters();
+                }
             }
 
             // Add markers for nearby rescue centers
@@ -1633,14 +2225,22 @@
             recommendedResources.innerHTML = resourcesHtml;
 
             // Set up the call button for the recommended center
-            setTimeout(setupCallButtons, 100);
+            setTimeout(() => {
+                const recommendedCallBtn = document.querySelector('#recommended-center .call-center');
+                if (recommendedCallBtn) {
+                    recommendedCallBtn.addEventListener('click', function () {
+                        const phoneNumber = center.phone;
+                        initiatePhoneCall(phoneNumber);
+                    });
+                }
+            }, 100);
         }
 
         // Load emergencies for responders
         function loadEmergencies() {
             emergenciesList.innerHTML = '';
 
-            const activeEmergencies = emergencyDB.emergencies.filter(e => e.status === 'reported');
+            const activeEmergencies = emergencyDB.emergencies.filter(e => e.status === 'reported' || e.status === 'dispatched');
             const respondedEmergencies = emergencyDB.emergencies.filter(e => e.status === 'responded');
             const resolvedEmergencies = emergencyDB.emergencies.filter(e => e.status === 'resolved');
 
@@ -1668,6 +2268,33 @@
 
                 const item = document.createElement('div');
                 item.className = `emergency-item ${severityClass} p-4 bg-white rounded-lg shadow`;
+                item.setAttribute('data-id', emergency.id);
+
+                // Create image HTML if there are uploaded images
+                let imagesHtml = '';
+                if (emergency.images && emergency.images.length > 0) {
+                    imagesHtml = `
+                        <div class="mt-3">
+                            <p class="text-sm font-medium mb-2">Uploaded Images:</p>
+                            <div class="flex space-x-2 overflow-x-auto pb-2">
+                                ${emergency.images.map(img => `
+                                    <img src="${img}" alt="Emergency image" class="emergency-image w-32 h-24 object-cover rounded cursor-pointer" onclick="openImageModal('${img}')">
+                                `).join('')}
+                            </div>
+                        </div>
+                    `;
+                }
+
+                // Add dispatch info if available
+                let dispatchInfo = '';
+                if (emergency.status === 'dispatched') {
+                    dispatchInfo = `
+                        <div class="mt-2 bg-yellow-100 text-yellow-800 p-2 rounded text-sm">
+                            <i class="fas fa-ambulance mr-1"></i> Unit ${emergency.dispatchedUnit} dispatched at ${formatTime(emergency.dispatchTime)}
+                            ${emergency.dispatchNotes ? `<br>Notes: ${emergency.dispatchNotes}` : ''}
+                        </div>
+                    `;
+                }
 
                 item.innerHTML = `
                     <div class="flex justify-between items-start">
@@ -1685,6 +2312,8 @@
                             ${emergency.reporter.canContact ? `
                                 <p class="text-sm mt-1"><i class="fas fa-phone mr-1"></i> Contact: ${emergency.reporter.phone}</p>
                             ` : ''}
+                            ${dispatchInfo}
+                            ${imagesHtml}
                         </div>
                         <div class="flex space-x-2">
                             ${emergency.reporter.canContact ? `
@@ -1700,6 +2329,20 @@
                 `;
 
                 emergenciesList.appendChild(item);
+
+                // Add click event to select emergency
+                item.addEventListener('click', function (e) {
+                    // Don't trigger selection if clicking on buttons or images
+                    if (e.target.tagName === 'BUTTON' || e.target.tagName === 'IMG') return;
+
+                    // Remove selection from all items
+                    document.querySelectorAll('.emergency-item').forEach(el => {
+                        el.classList.remove('selected');
+                    });
+
+                    // Add selection to clicked item
+                    this.classList.add('selected');
+                });
             });
 
             // Set up the call buttons
@@ -1707,10 +2350,40 @@
 
             // Add event listeners for respond buttons
             document.querySelectorAll('.respond-btn').forEach(btn => {
-                btn.addEventListener('click', function () {
+                btn.addEventListener('click', function (e) {
+                    e.stopPropagation(); // Prevent triggering the item click event
                     const emergencyId = parseInt(this.getAttribute('data-id'));
                     respondToEmergency(emergencyId);
                 });
+            });
+        }
+
+        // Open image in modal
+        function openImageModal(imageSrc) {
+            const modal = document.createElement('div');
+            modal.className = 'modal';
+            modal.innerHTML = `
+                <div class="modal-content">
+                    <div class="close-modal">
+                        <i class="fas fa-times"></i>
+                    </div>
+                    <img src="${imageSrc}" alt="Emergency image" class="w-full h-auto">
+                </div>
+            `;
+
+            document.body.appendChild(modal);
+            modal.classList.remove('hidden');
+
+            // Close modal when clicking close button or outside
+            const closeBtn = modal.querySelector('.close-modal');
+            closeBtn.addEventListener('click', function () {
+                document.body.removeChild(modal);
+            });
+
+            modal.addEventListener('click', function (e) {
+                if (e.target === modal) {
+                    document.body.removeChild(modal);
+                }
             });
         }
 
@@ -1727,7 +2400,7 @@
                 // Simulate response process
                 setTimeout(() => {
                     emergencyDB.emergencies[emergencyIndex].status = 'resolved';
-                    showNotification(`Emergency #${emergencyId} has been resolved`, 'info');
+                    showNotification(`Emergency #${emergencyId} has been resolved', 'info`);
                     loadEmergencies();
                 }, 10000);
             }
