@@ -7,6 +7,7 @@
     <title>Zambia Emergency Response - Report Emergency</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <style>
@@ -1176,6 +1177,83 @@
                 </div>
             </div>
         </div>
+        <!-- Add this section to the Responder tab, after the Response Tools section -->
+        <div class="emergency-card p-5 mt-6">
+            <h3 class="text-lg font-bold mb-4">Emergency Analytics</h3>
+        
+            <!-- Time Period Selector -->
+            <div class="flex justify-between items-center mb-6">
+                <div class="flex space-x-2">
+                    <button id="daily-report-btn" class="px-4 py-2 bg-blue-600 text-white rounded-lg font-medium">Daily
+                        Report</button>
+                    <button id="monthly-report-btn" class="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg font-medium">Monthly
+                        Report</button>
+                </div>
+                <div class="text-sm text-gray-600" id="report-period">Showing data for: Today</div>
+            </div>
+        
+            <!-- Summary Stats -->
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+                <div class="bg-blue-50 p-4 rounded-lg text-center">
+                    <div class="text-2xl font-bold text-blue-600" id="total-emergencies">0</div>
+                    <div class="text-sm text-gray-600">Total Emergencies</div>
+                </div>
+                <div class="bg-red-50 p-4 rounded-lg text-center">
+                    <div class="text-2xl font-bold text-red-600" id="medical-emergencies">0</div>
+                    <div class="text-sm text-gray-600">Medical Cases</div>
+                </div>
+                <div class="bg-orange-50 p-4 rounded-lg text-center">
+                    <div class="text-2xl font-bold text-orange-600" id="fire-emergencies">0</div>
+                    <div class="text-sm text-gray-600">Fire Incidents</div>
+                </div>
+                <div class="bg-blue-50 p-4 rounded-lg text-center">
+                    <div class="text-2xl font-bold text-blue-600" id="police-emergencies">0</div>
+                    <div class="text-sm text-gray-600">Police Cases</div>
+                </div>
+            </div>
+        
+            <!-- Map Visualization -->
+            <div class="mb-6">
+                <h4 class="font-medium mb-2">Emergency Hotspots</h4>
+                <div id="analytics-map" style="height: 300px; border-radius: 8px;"></div>
+            </div>
+        
+            <!-- Emergency Type Distribution -->
+            <div class="mb-6">
+                <h4 class="font-medium mb-2">Emergency Type Distribution</h4>
+                <div class="bg-white p-4 rounded-lg shadow">
+                    <canvas id="type-chart" height="100"></canvas>
+                </div>
+            </div>
+        
+            <!-- Time Pattern Chart -->
+            <div class="mb-6">
+                <h4 class="font-medium mb-2">Emergency Patterns</h4>
+                <div class="bg-white p-4 rounded-lg shadow">
+                    <canvas id="time-chart" height="100"></canvas>
+                </div>
+            </div>
+        
+            <!-- Detailed Report Table -->
+            <div>
+                <h4 class="font-medium mb-2">Detailed Report</h4>
+                <div class="overflow-x-auto">
+                    <table class="min-w-full bg-white rounded-lg overflow-hidden">
+                        <thead class="bg-gray-100">
+                            <tr>
+                                <th class="py-2 px-4 text-left">Time</th>
+                                <th class="py-2 px-4 text-left">Type</th>
+                                <th class="py-2 px-4 text-left">Location</th>
+                                <th class="py-2 px-4 text-left">Severity</th>
+                            </tr>
+                        </thead>
+                        <tbody id="report-table-body" class="divide-y divide-gray-200">
+                            <!-- Data will be populated here -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
     </main>
 
     <!-- Emergency Action Footer -->
@@ -1831,6 +1909,7 @@
                 emergencyRefreshInterval = setInterval(loadEmergencies, 5000); // Refresh every 5 seconds
 
                 showNotification('Logged in as responder', 'success');
+                initAnalytics();
             } else {
                 showNotification('Invalid credentials', 'error');
             }
@@ -2528,6 +2607,327 @@
             const randomStatus = statuses[Math.floor(Math.random() * statuses.length)];
             document.getElementById('status').textContent = randomStatus;
         }, 8000);
+    // ===== ANALYTICS CODE =====
+                // Analytics variables
+                let analyticsMap = null;
+                let typeChart = null;
+                let timeChart = null;
+                let currentReportType = 'daily';
+
+                // Initialize analytics when responder view is shown
+                function initAnalytics() {
+                    // Load analytics data
+                    loadAnalyticsData();
+
+                // Set up report type buttons
+                document.getElementById('daily-report-btn').addEventListener('click', function() {
+                    currentReportType = 'daily';
+                updateReportButtons();
+                loadAnalyticsData();
+        });
+
+                document.getElementById('monthly-report-btn').addEventListener('click', function() {
+                    currentReportType = 'monthly';
+                updateReportButtons();
+                loadAnalyticsData();
+        });
+    }
+
+                // Update report button styles
+                function updateReportButtons() {
+        const dailyBtn = document.getElementById('daily-report-btn');
+                const monthlyBtn = document.getElementById('monthly-report-btn');
+
+                if (currentReportType === 'daily') {
+                    dailyBtn.classList.add('bg-blue-600', 'text-white');
+                dailyBtn.classList.remove('bg-gray-200', 'text-gray-700');
+                monthlyBtn.classList.add('bg-gray-200', 'text-gray-700');
+                monthlyBtn.classList.remove('bg-blue-600', 'text-white');
+                document.getElementById('report-period').textContent = 'Showing data for: Today';
+        } else {
+                    monthlyBtn.classList.add('bg-blue-600', 'text-white');
+                monthlyBtn.classList.remove('bg-gray-200', 'text-gray-700');
+                dailyBtn.classList.add('bg-gray-200', 'text-gray-700');
+                dailyBtn.classList.remove('bg-blue-600', 'text-white');
+                document.getElementById('report-period').textContent = 'Showing data for: This Month';
+        }
+    }
+
+                // Load and process analytics data
+                function loadAnalyticsData() {
+        // Filter emergencies based on report type
+        const now = new Date();
+                let filteredEmergencies = [];
+
+                if (currentReportType === 'daily') {
+                    // Get emergencies from today
+                    filteredEmergencies = emergencyDB.emergencies.filter(emergency => {
+                        const emergencyDate = new Date(emergency.timestamp);
+                        return emergencyDate.toDateString() === now.toDateString();
+                    });
+        } else {
+                    // Get emergencies from this month
+                    filteredEmergencies = emergencyDB.emergencies.filter(emergency => {
+                        const emergencyDate = new Date(emergency.timestamp);
+                        return emergencyDate.getMonth() === now.getMonth() &&
+                            emergencyDate.getFullYear() === now.getFullYear();
+                    });
+        }
+
+                // Update summary statistics
+                updateSummaryStats(filteredEmergencies);
+
+                // Update map visualization
+                updateAnalyticsMap(filteredEmergencies);
+
+                // Update charts
+                updateTypeChart(filteredEmergencies);
+                updateTimeChart(filteredEmergencies);
+
+                // Update report table
+                updateReportTable(filteredEmergencies);
+    }
+
+                // Update summary statistics
+                function updateSummaryStats(emergencies) {
+                    document.getElementById('total-emergencies').textContent = emergencies.length;
+        
+        const medicalCount = emergencies.filter(e => e.type === 'medical').length;
+        const fireCount = emergencies.filter(e => e.type === 'fire').length;
+        const policeCount = emergencies.filter(e => e.type === 'police').length;
+        const otherCount = emergencies.filter(e => e.type === 'general').length;
+
+                document.getElementById('medical-emergencies').textContent = medicalCount;
+                document.getElementById('fire-emergencies').textContent = fireCount;
+                document.getElementById('police-emergencies').textContent = policeCount;
+    }
+
+                // Update analytics map with emergency hotspots
+                function updateAnalyticsMap(emergencies) {
+        const mapContainer = document.getElementById('analytics-map');
+
+                // Clear previous map if it exists
+                if (analyticsMap) {
+                    analyticsMap.remove();
+        }
+
+                // Create new map centered on Lusaka
+                analyticsMap = L.map('analytics-map').setView([-15.3875, 28.3228], 12);
+
+                L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                    attribution: '© OpenStreetMap contributors'
+        }).addTo(analyticsMap);
+
+        // Add heatmap layer
+        const heatmapPoints = emergencies.map(emergency => [
+                emergency.location.lat,
+                emergency.location.lng,
+                0.5 // intensity
+                ]);
+
+        // Create a heatmap layer (using circles as a simple approximation)
+        emergencies.forEach(emergency => {
+                    let color;
+                switch(emergency.type) {
+                case 'medical': color = 'red'; break;
+                case 'fire': color = 'orange'; break;
+                case 'police': color = 'blue'; break;
+                default: color = 'gray';
+            }
+
+                L.circle([emergency.location.lat, emergency.location.lng], {
+                    color: color,
+                fillColor: color,
+                fillOpacity: 0.5,
+                radius: 300
+            }).addTo(analyticsMap).bindPopup(`
+                <strong>${emergency.type.toUpperCase()} Emergency</strong><br>
+                    ${emergency.address}<br>
+                        ${formatTime(emergency.timestamp)}
+                        `);
+        });
+
+        // Add rescue centers to the map
+        emergencyDB.rescueCenters.forEach(center => {
+                            let iconColor;
+                        switch (center.type) {
+                case 'hospital': iconColor = 'red'; break;
+                        case 'police': iconColor = 'blue'; break;
+                        case 'fire': iconColor = 'orange'; break;
+                        default: iconColor = 'gray';
+            }
+
+                        const icon = L.divIcon({
+                            className: 'custom-icon',
+                        html: `<div style="background-color: ${iconColor}; width: 16px; height: 16px; border-radius: 50%; border: 2px solid white; box-shadow: 0 0 10px rgba(0,0,0,0.5);"></div>`,
+                        iconSize: [16, 16],
+                        iconAnchor: [8, 8]
+            });
+
+                        L.marker([center.location.lat, center.location.lng], {icon: icon })
+                        .addTo(analyticsMap)
+                        .bindPopup(`
+                        <strong>${center.name}</strong><br>
+                            ${center.address}<br>
+                                Phone: ${center.phone}
+                                `);
+        });
+    }
+
+                                // Update emergency type distribution chart
+                                function updateTypeChart(emergencies) {
+        const ctx = document.getElementById('type-chart').getContext('2d');
+
+                                // Count emergencies by type
+                                const typeCounts = {
+                                    medical: emergencies.filter(e => e.type === 'medical').length,
+            fire: emergencies.filter(e => e.type === 'fire').length,
+            police: emergencies.filter(e => e.type === 'police').length,
+            general: emergencies.filter(e => e.type === 'general').length
+        };
+
+                                // Destroy previous chart if it exists
+                                if (typeChart) {
+                                    typeChart.destroy();
+        }
+
+                                // Create new chart
+                                typeChart = new Chart(ctx, {
+                                    type: 'doughnut',
+                                data: {
+                                    labels: ['Medical', 'Fire', 'Police', 'Other'],
+                                datasets: [{
+                                    data: [typeCounts.medical, typeCounts.fire, typeCounts.police, typeCounts.general],
+                                backgroundColor: [
+                                '#ef4444', // red
+                                '#f97316', // orange
+                                '#3b82f6', // blue
+                                '#94a3b8'  // gray
+                                ]
+                }]
+            },
+                                options: {
+                                    responsive: true,
+                                plugins: {
+                                    legend: {
+                                    position: 'bottom'
+                    }
+                }
+            }
+        });
+    }
+
+                                // Update time pattern chart
+                                function updateTimeChart(emergencies) {
+        const ctx = document.getElementById('time-chart').getContext('2d');
+
+                                // Group emergencies by hour
+                                const hours = Array.from({length: 24}, (_, i) => i);
+        const hourlyCounts = hours.map(hour => {
+            return emergencies.filter(emergency => {
+                const emergencyHour = new Date(emergency.timestamp).getHours();
+                                return emergencyHour === hour;
+            }).length;
+        });
+
+                                // Destroy previous chart if it exists
+                                if (timeChart) {
+                                    timeChart.destroy();
+        }
+
+                                // Create new chart
+                                timeChart = new Chart(ctx, {
+                                    type: 'bar',
+                                data: {
+                                    labels: hours.map(h => `${h}:00`),
+                                datasets: [{
+                                    label: 'Emergencies by Hour',
+                                data: hourlyCounts,
+                                backgroundColor: '#3b82f6'
+                }]
+            },
+                                options: {
+                                    responsive: true,
+                                scales: {
+                                    y: {
+                                    beginAtZero: true,
+                                title: {
+                                    display: true,
+                                text: 'Number of Emergencies'
+                        }
+                    },
+                                x: {
+                                    title: {
+                                    display: true,
+                                text: 'Hour of Day'
+                        }
+                    }
+                }
+            }
+        });
+    }
+
+                                // Update detailed report table
+                                function updateReportTable(emergencies) {
+        const tableBody = document.getElementById('report-table-body');
+                                tableBody.innerHTML = '';
+
+        // Sort emergencies by timestamp (newest first)
+        const sortedEmergencies = [...emergencies].sort((a, b) => {
+            return new Date(b.timestamp) - new Date(a.timestamp);
+        });
+
+        // Add rows to table
+        sortedEmergencies.forEach(emergency => {
+            const row = document.createElement('tr');
+
+                                // Format time
+                                const emergencyTime = new Date(emergency.timestamp);
+                                const timeString = emergencyTime.toLocaleTimeString([], {hour: '2-digit', minute: '2-digit'});
+
+                                // Format type with icon
+                                let typeIcon = '';
+                                switch(emergency.type) {
+                case 'medical': typeIcon = '🏥'; break;
+                                case 'fire': typeIcon = '🔥'; break;
+                                case 'police': typeIcon = '👮'; break;
+                                default: typeIcon = '⚠️';
+            }
+
+                                row.innerHTML = `
+                                <td class="py-2 px-4">${timeString}</td>
+                                <td class="py-2 px-4">${typeIcon} ${emergency.type.charAt(0).toUpperCase() + emergency.type.slice(1)}</td>
+                                <td class="py-2 px-4">${emergency.address}</td>
+                                <td class="py-2 px-4">
+                                    <span class="priority-badge ${getSeverityClass(emergency.severity)}">
+                                        ${emergency.severity}
+                                    </span>
+                                </td>
+                                `;
+
+                                tableBody.appendChild(row);
+        });
+
+                                // If no emergencies, show message
+                                if (sortedEmergencies.length === 0) {
+            const row = document.createElement('tr');
+                                row.innerHTML = `
+                                <td colspan="4" class="py-4 px-4 text-center text-gray-500">
+                                    No emergencies found for this period
+                                </td>
+            `;
+            tableBody.appendChild(row);
+        }
+    }
+
+    // Helper function to get severity CSS class
+    function getSeverityClass(severity) {
+        if (severity.includes('Critical')) return 'bg-red-100 text-red-800';
+        if (severity.includes('Serious')) return 'bg-yellow-100 text-yellow-800';
+        if (severity.includes('Moderate')) return 'bg-blue-100 text-blue-800';
+        return 'bg-gray-100 text-gray-800';
+    }
+    // ===== END ANALYTICS CODE =====
     </script>
 </body>
 
