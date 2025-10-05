@@ -844,106 +844,6 @@
                 flex-direction: column;
             }
         }
-
-        /* Responsive styles for Rescue Centers section */
-        @media (max-width: 768px) {
-            .rescue-center-card .flex.justify-between.items-start {
-                flex-direction: column;
-            }
-
-            .rescue-center-card .text-right {
-                text-align: left;
-                margin-top: 1rem;
-                width: 100%;
-            }
-
-            .rescue-center-card .flex.items-center.mt-2 {
-                flex-wrap: wrap;
-            }
-
-            .rescue-center-card .flex.items-center.mt-2>div {
-                margin-bottom: 0.5rem;
-                margin-right: 0.5rem;
-            }
-
-            #recommended-center .rescue-center-card .flex.justify-between.items-start {
-                flex-direction: column;
-            }
-
-            #recommended-center .text-right {
-                text-align: left;
-                margin-top: 1rem;
-            }
-
-            #recommended-center .flex.items-center.mt-2 {
-                flex-wrap: wrap;
-            }
-
-            #recommended-center .flex.items-center.mt-2>div {
-                margin-bottom: 0.5rem;
-                margin-right: 0.5rem;
-            }
-        }
-
-        @media (max-width: 480px) {
-            .rescue-center-card {
-                padding: 0.75rem;
-            }
-
-            .rescue-center-card h3 {
-                font-size: 1.125rem;
-            }
-
-            .rescue-center-card .text-xl {
-                font-size: 1.25rem;
-            }
-
-            .rescue-center-card button {
-                padding: 0.5rem 0.75rem;
-                font-size: 0.875rem;
-            }
-
-            #recommended-center {
-                padding: 0.75rem;
-            }
-
-            #recommended-center h3 {
-                font-size: 1.125rem;
-            }
-
-            #recommended-center .text-xl {
-                font-size: 1.25rem;
-            }
-
-            #recommended-center button {
-                padding: 0.5rem 0.75rem;
-                font-size: 0.875rem;
-            }
-        }
-
-        /* Additional utility classes for better responsiveness */
-        .flex-wrap-responsive {
-            flex-wrap: wrap;
-        }
-
-        .text-center-mobile {
-            text-align: left;
-        }
-
-        @media (max-width: 768px) {
-            .text-center-mobile {
-                text-align: center;
-            }
-
-            .flex-responsive {
-                flex-direction: column;
-            }
-
-            .px-responsive {
-                padding-left: 0.5rem;
-                padding-right: 0.5rem;
-            }
-        }
     </style>
 </head>
 
@@ -1481,83 +1381,6 @@
                 </div>
             </div>
         </div>
-        <!-- Analytics Section -->
-        <div class="emergency-card p-5 mt-6">
-            <h3 class="text-lg font-bold mb-4">Emergency Analytics</h3>
-
-            <!-- Time Period Selector -->
-            <div class="flex justify-between items-center mb-6">
-                <div class="flex space-x-2">
-                    <button id="daily-report-btn" class="px-4 py-2 bg-blue-600 text-white rounded-lg font-medium">Daily
-                        Report</button>
-                    <button id="monthly-report-btn"
-                        class="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg font-medium">Monthly Report</button>
-                </div>
-                <div class="text-sm text-gray-600" id="report-period">Showing data for: Today</div>
-            </div>
-
-            <!-- Summary Stats -->
-            <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
-                <div class="bg-blue-50 p-4 rounded-lg text-center">
-                    <div class="text-2xl font-bold text-blue-600" id="total-emergencies">0</div>
-                    <div class="text-sm text-gray-600">Total Emergencies</div>
-                </div>
-                <div class="bg-red-50 p-4 rounded-lg text-center">
-                    <div class="text-2xl font-bold text-red-600" id="medical-emergencies">0</div>
-                    <div class="text-sm text-gray-600">Medical Cases</div>
-                </div>
-                <div class="bg-orange-50 p-4 rounded-lg text-center">
-                    <div class="text-2xl font-bold text-orange-600" id="fire-emergencies">0</div>
-                    <div class="text-sm text-gray-600">Fire Incidents</div>
-                </div>
-                <div class="bg-blue-50 p-4 rounded-lg text-center">
-                    <div class="text-2xl font-bold text-blue-600" id="police-emergencies">0</div>
-                    <div class="text-sm text-gray-600">Police Cases</div>
-                </div>
-            </div>
-
-            <!-- Map Visualization -->
-            <div class="mb-6">
-                <h4 class="font-medium mb-2">Emergency Hotspots</h4>
-                <div id="analytics-map" style="height: 300px; border-radius: 8px;"></div>
-            </div>
-
-            <!-- Emergency Type Distribution -->
-            <div class="mb-6">
-                <h4 class="font-medium mb-2">Emergency Type Distribution</h4>
-                <div class="bg-white p-4 rounded-lg shadow">
-                    <canvas id="type-chart" height="100"></canvas>
-                </div>
-            </div>
-
-            <!-- Time Pattern Chart -->
-            <div class="mb-6">
-                <h4 class="font-medium mb-2">Emergency Patterns</h4>
-                <div class="bg-white p-4 rounded-lg shadow">
-                    <canvas id="time-chart" height="100"></canvas>
-                </div>
-            </div>
-
-            <!-- Detailed Report Table -->
-            <div>
-                <h4 class="font-medium mb-2">Detailed Report</h4>
-                <div class="overflow-x-auto">
-                    <table class="min-w-full bg-white rounded-lg overflow-hidden">
-                        <thead class="bg-gray-100">
-                            <tr>
-                                <th class="py-2 px-4 text-left">Time</th>
-                                <th class="py-2 px-4 text-left">Type</th>
-                                <th class="py-2 px-4 text-left">Location</th>
-                                <th class="py-2 px-4 text-left">Severity</th>
-                            </tr>
-                        </thead>
-                        <tbody id="report-table-body" class="divide-y divide-gray-200">
-                            <!-- Data will be populated here -->
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-        </div>
     </main>
 
     <!-- Emergency Action Footer -->
@@ -1656,369 +1479,221 @@
     </div>
 
     <script>
-        // WebSocket connection for real-time functionality
-        let ws = null;
-        let isConnected = false;
-        let reconnectAttempts = 0;
-        const MAX_RECONNECT_ATTEMPTS = 5;
-        const RECONNECT_INTERVAL = 3000; // 3 seconds
+        // =============================================
+        // REAL-TIME BACKEND SIMULATION
+        // =============================================
 
-        // Initialize WebSocket connection
-        function initWebSocket() {
-            try {
-                // In a real implementation, this would connect to your WebSocket server
-                // For this demo, we'll simulate the connection
-                ws = {
-                    send: function (data) {
-                        console.log('WebSocket message sent:', data);
-                        // Simulate receiving messages after a short delay
-                        setTimeout(() => {
-                            handleWebSocketMessage(JSON.parse(data));
-                        }, 100);
-                    },
-                    close: function () {
-                        console.log('WebSocket connection closed');
-                        isConnected = false;
-                        updateConnectionStatus(false);
+        // This simulates a shared backend that persists across all tabs/windows
+        class EmergencyBackend {
+            constructor() {
+                // Use localStorage as our shared "database"
+                this.initializeStorage();
+                this.setupStorageListener();
+            }
+
+            initializeStorage() {
+                if (!localStorage.getItem('emergencyDB')) {
+                    const initialData = {
+                        emergencies: [],
+                        responders: [
+                            {
+                                id: 1,
+                                email: "responder@uth.gov.zm",
+                                password: "password123",
+                                organization: "hospital",
+                                name: "Dr. David Chanda",
+                                badgeId: "UTH-1234",
+                                isAvailable: true
+                            },
+                            {
+                                id: 2,
+                                email: "officer@police.gov.zm",
+                                password: "password123",
+                                organization: "police",
+                                name: "Officer James Banda",
+                                badgeId: "LCP-5678",
+                                isAvailable: true
+                            },
+                            {
+                                id: 3,
+                                email: "firefighter@lusfire.gov.zm",
+                                password: "fire123",
+                                organization: "fire",
+                                name: "Captain Sarah Mwale",
+                                badgeId: "LFF-4567",
+                                isAvailable: true
+                            },
+                            {
+                                id: 4,
+                                email: "guard@security.gov.zm",
+                                password: "secure456",
+                                organization: "security",
+                                name: "Security Chief John Phiri",
+                                badgeId: "GS-8965",
+                                isAvailable: true
+                            }
+                        ],
+                        rescueCenters: [
+                            {
+                                id: 1,
+                                name: "University Teaching Hospital",
+                                type: "hospital",
+                                location: { lat: -15.3955, lng: 28.3200 },
+                                address: "Nationalist Road, Lusaka, Zambia",
+                                phone: "+260211256067",
+                                resources: {
+                                    bedsAvailable: 12,
+                                    doctorsOnDuty: 4
+                                },
+                                emergencyTypes: ["medical", "general"]
+                            },
+                            {
+                                id: 2,
+                                name: "Lusaka Central Police Station",
+                                type: "police",
+                                location: { lat: -15.4167, lng: 28.2833 },
+                                address: "Cairo Road, Lusaka, Zambia",
+                                phone: "+260211228794",
+                                resources: {
+                                    officersAvailable: 8,
+                                    vehiclesAvailable: 3
+                                },
+                                emergencyTypes: ["police", "general"]
+                            },
+                            {
+                                id: 3,
+                                name: "Lusaka Fire Station",
+                                type: "fire",
+                                location: { lat: -15.4100, lng: 28.2900 },
+                                address: "Kabulonga Road, Lusaka, Zambia",
+                                phone: "+260211228844",
+                                resources: {
+                                    trucksAvailable: 2,
+                                    firefightersOnDuty: 6
+                                },
+                                emergencyTypes: ["fire", "general"]
+                            },
+                            {
+                                id: 4,
+                                name: "Levy Mwanawasa Hospital",
+                                type: "hospital",
+                                location: { lat: -15.3775, lng: 28.3100 },
+                                address: "Great East Road, Lusaka, Zambia",
+                                phone: "+260211253077",
+                                resources: {
+                                    bedsAvailable: 8,
+                                    doctorsOnDuty: 3
+                                },
+                                emergencyTypes: ["medical", "general"]
+                            },
+                            {
+                                id: 5,
+                                name: "Woodlands Police Station",
+                                type: "police",
+                                location: { lat: -15.4000, lng: 28.3000 },
+                                address: "Woodlands Road, Lusaka, Zambia",
+                                phone: "+260211254321",
+                                resources: {
+                                    officersAvailable: 5,
+                                    vehiclesAvailable: 2
+                                },
+                                emergencyTypes: ["police", "general"]
+                            }
+                        ]
+                    };
+                    localStorage.setItem('emergencyDB', JSON.stringify(initialData));
+                }
+            }
+
+            setupStorageListener() {
+                // Listen for changes in localStorage (from other tabs)
+                window.addEventListener('storage', (e) => {
+                    if (e.key === 'emergencyDB' && e.newValue) {
+                        // Notify all components about the update
+                        this.notifySubscribers();
                     }
-                };
-
-                // Simulate successful connection
-                setTimeout(() => {
-                    isConnected = true;
-                    updateConnectionStatus(true);
-
-                    // Send user info to server
-                    if (currentUser) {
-                        sendUserInfo();
-                    }
-
-                    // If responder, request current emergencies
-                    if (currentUser && currentUser.type === 'responder') {
-                        requestEmergencies();
-                    }
-                }, 500);
-
-            } catch (error) {
-                console.error('WebSocket connection failed:', error);
-                handleConnectionError();
-            }
-        }
-
-        // Handle WebSocket messages
-        function handleWebSocketMessage(message) {
-            console.log('WebSocket message received:', message);
-
-            switch (message.type) {
-                case 'user_joined':
-                    showNotification(`${message.userName} joined the system`, 'info');
-                    break;
-
-                case 'user_left':
-                    showNotification(`${message.userName} left the system`, 'info');
-                    break;
-
-                case 'emergency_reported':
-                    handleNewEmergency(message.emergency);
-                    break;
-
-                case 'emergency_updated':
-                    updateEmergency(message.emergency);
-                    break;
-
-                case 'emergency_resolved':
-                    resolveEmergency(message.emergencyId);
-                    break;
-
-                case 'emergencies_list':
-                    if (currentUser && currentUser.type === 'responder') {
-                        updateEmergenciesList(message.emergencies);
-                    }
-                    break;
-
-                case 'user_info_updated':
-                    updateUserInfo(message.user);
-                    break;
-
-                default:
-                    console.log('Unknown message type:', message.type);
-            }
-        }
-
-        // Send user information to server
-        function sendUserInfo() {
-            if (!ws || !isConnected || !currentUser) return;
-
-            const message = {
-                type: 'user_info',
-                user: {
-                    id: currentUser.id || Date.now(),
-                    name: currentUser.name,
-                    type: currentUser.type,
-                    organization: currentUser.organization,
-                    location: userLocation,
-                    timestamp: new Date().toISOString()
-                }
-            };
-
-            ws.send(JSON.stringify(message));
-        }
-
-        // Request current emergencies from server
-        function requestEmergencies() {
-            if (!ws || !isConnected) return;
-
-            const message = {
-                type: 'request_emergencies'
-            };
-
-            ws.send(JSON.stringify(message));
-        }
-
-        // Report a new emergency
-        function reportEmergency(emergency) {
-            if (!ws || !isConnected) return;
-
-            const message = {
-                type: 'report_emergency',
-                emergency: emergency
-            };
-
-            ws.send(JSON.stringify(message));
-        }
-
-        // Update emergency status
-        function updateEmergencyStatus(emergencyId, status, responder = null) {
-            if (!ws || !isConnected) return;
-
-            const message = {
-                type: 'update_emergency',
-                emergencyId: emergencyId,
-                status: status,
-                responder: responder,
-                timestamp: new Date().toISOString()
-            };
-
-            ws.send(JSON.stringify(message));
-        }
-
-        // Handle new emergency from server
-        function handleNewEmergency(emergency) {
-            // Add to local database
-            emergencyDB.emergencies.push(emergency);
-
-            // If user is a responder, update the UI
-            if (currentUser && currentUser.type === 'responder') {
-                loadEmergencies();
-                showAlert(emergency);
-
-                // Update analytics
-                loadAnalyticsData();
+                });
             }
 
-            // Show notification for reporters/guests if it's their emergency
-            if (currentUser && (currentUser.type === 'reporter' || currentUser.type === 'guest') &&
-                emergency.reporter.name === currentUser.name) {
-                showNotification('Your emergency has been received and help is on the way!', 'success');
+            // Subscriber pattern for real-time updates
+            subscribers = [];
+
+            subscribe(callback) {
+                this.subscribers.push(callback);
             }
-        }
 
-        // Update existing emergency
-        function updateEmergency(emergency) {
-            const index = emergencyDB.emergencies.findIndex(e => e.id === emergency.id);
-            if (index !== -1) {
-                emergencyDB.emergencies[index] = emergency;
+            notifySubscribers() {
+                this.subscribers.forEach(callback => {
+                    callback(this.getEmergencies());
+                });
+            }
 
-                // If user is a responder, update the UI
-                if (currentUser && currentUser.type === 'responder') {
-                    loadEmergencies();
+            getEmergencies() {
+                const db = JSON.parse(localStorage.getItem('emergencyDB'));
+                return db.emergencies || [];
+            }
+
+            addEmergency(emergency) {
+                const db = JSON.parse(localStorage.getItem('emergencyDB'));
+                db.emergencies.push(emergency);
+                localStorage.setItem('emergencyDB', JSON.stringify(db));
+
+                // Notify all subscribers
+                this.notifySubscribers();
+
+                // Also trigger storage event for other tabs
+                window.dispatchEvent(new StorageEvent('storage', {
+                    key: 'emergencyDB',
+                    newValue: JSON.stringify(db)
+                }));
+
+                return emergency;
+            }
+
+            updateEmergency(emergencyId, updates) {
+                const db = JSON.parse(localStorage.getItem('emergencyDB'));
+                const index = db.emergencies.findIndex(e => e.id === emergencyId);
+
+                if (index !== -1) {
+                    db.emergencies[index] = { ...db.emergencies[index], ...updates };
+                    localStorage.setItem('emergencyDB', JSON.stringify(db));
+
+                    // Notify all subscribers
+                    this.notifySubscribers();
+
+                    // Also trigger storage event for other tabs
+                    window.dispatchEvent(new StorageEvent('storage', {
+                        key: 'emergencyDB',
+                        newValue: JSON.stringify(db)
+                    }));
+
+                    return db.emergencies[index];
                 }
 
-                // Update analytics
-                loadAnalyticsData();
+                return null;
+            }
+
+            getRescueCenters() {
+                const db = JSON.parse(localStorage.getItem('emergencyDB'));
+                return db.rescueCenters || [];
+            }
+
+            validateResponder(email, password, organization) {
+                const db = JSON.parse(localStorage.getItem('emergencyDB'));
+                return db.responders.find(r =>
+                    r.email === email &&
+                    r.password === password &&
+                    r.organization === organization
+                );
             }
         }
 
-        // Resolve emergency
-        function resolveEmergency(emergencyId) {
-            const index = emergencyDB.emergencies.findIndex(e => e.id === emergencyId);
-            if (index !== -1) {
-                emergencyDB.emergencies[index].status = 'resolved';
+        // =============================================
+        // APPLICATION LOGIC
+        // =============================================
 
-                // If user is a responder, update the UI
-                if (currentUser && currentUser.type === 'responder') {
-                    loadEmergencies();
-                }
-
-                // Update analytics
-                loadAnalyticsData();
-
-                // Show notification if it's the reporter's emergency
-                if (currentUser && (currentUser.type === 'reporter' || currentUser.type === 'guest') &&
-                    emergencyDB.emergencies[index].reporter.name === currentUser.name) {
-                    showNotification('Your emergency has been resolved!', 'success');
-                }
-            }
-        }
-
-        // Update emergencies list for responders
-        function updateEmergenciesList(emergencies) {
-            emergencyDB.emergencies = emergencies;
-            loadEmergencies();
-            loadAnalyticsData();
-        }
-
-        // Update user information
-        function updateUserInfo(user) {
-            // In a real implementation, you might update user lists or online status
-            console.log('User info updated:', user);
-        }
-
-        // Handle connection errors
-        function handleConnectionError() {
-            isConnected = false;
-            updateConnectionStatus(false);
-
-            if (reconnectAttempts < MAX_RECONNECT_ATTEMPTS) {
-                reconnectAttempts++;
-                console.log(`Attempting to reconnect... (${reconnectAttempts}/${MAX_RECONNECT_ATTEMPTS})`);
-
-                setTimeout(() => {
-                    initWebSocket();
-                }, RECONNECT_INTERVAL);
-            } else {
-                console.error('Max reconnection attempts reached');
-                showNotification('Connection lost. Please refresh the page.', 'error');
-            }
-        }
-
-        // Update connection status UI
-        function updateConnectionStatus(connected) {
-            const statusEl = document.getElementById('connection-status');
-            const indicatorEl = document.getElementById('connection-indicator');
-            const textEl = document.getElementById('connection-text');
-
-            if (connected) {
-                statusEl.classList.remove('hidden');
-                indicatorEl.className = 'online-indicator';
-                textEl.textContent = 'Connected';
-                reconnectAttempts = 0;
-            } else {
-                statusEl.classList.remove('hidden');
-                indicatorEl.className = 'offline-indicator';
-                textEl.textContent = 'Disconnected';
-            }
-        }
-
-        // Data storage (simulating a database)
-        const emergencyDB = {
-            emergencies: [],
-            responders: [
-                {
-                    id: 1,
-                    email: "responder@uth.gov.zm",
-                    password: "password123",
-                    organization: "hospital",
-                    name: "Dr. David Chanda",
-                    badgeId: "UTH-1234",
-                    isAvailable: true
-                },
-                {
-                    id: 2,
-                    email: "officer@police.gov.zm",
-                    password: "password123",
-                    organization: "police",
-                    name: "Officer James Banda",
-                    badgeId: "LCP-5678",
-                    isAvailable: true
-                },
-                {
-                    id: 3,
-                    email: "firefighter@lusfire.gov.zm",
-                    password: "fire123",
-                    organization: "fire",
-                    name: "Captain Sarah Mwale",
-                    badgeId: "LFF-4567",
-                    isAvailable: true
-                },
-                {
-                    id: 4,
-                    email: "guard@security.gov.zm",
-                    password: "secure456",
-                    organization: "security",
-                    name: "Security Chief John Phiri",
-                    badgeId: "GS-8965",
-                    isAvailable: true
-                }
-            ],
-            rescueCenters: [
-                {
-                    id: 1,
-                    name: "University Teaching Hospital",
-                    type: "hospital",
-                    location: { lat: -15.3955, lng: 28.3200 },
-                    address: "Nationalist Road, Lusaka, Zambia",
-                    phone: "+260211256067",
-                    resources: {
-                        bedsAvailable: 12,
-                        doctorsOnDuty: 4
-                    },
-                    emergencyTypes: ["medical", "general"]
-                },
-                {
-                    id: 2,
-                    name: "Lusaka Central Police Station",
-                    type: "police",
-                    location: { lat: -15.4167, lng: 28.2833 },
-                    address: "Cairo Road, Lusaka, Zambia",
-                    phone: "+260211228794",
-                    resources: {
-                        officersAvailable: 8,
-                        vehiclesAvailable: 3
-                    },
-                    emergencyTypes: ["police", "general"]
-                },
-                {
-                    id: 3,
-                    name: "Lusaka Fire Station",
-                    type: "fire",
-                    location: { lat: -15.4100, lng: 28.2900 },
-                    address: "Kabulonga Road, Lusaka, Zambia",
-                    phone: "+260211228844",
-                    resources: {
-                        trucksAvailable: 2,
-                        firefightersOnDuty: 6
-                    },
-                    emergencyTypes: ["fire", "general"]
-                },
-                {
-                    id: 4,
-                    name: "Levy Mwanawasa Hospital",
-                    type: "hospital",
-                    location: { lat: -15.3775, lng: 28.3100 },
-                    address: "Great East Road, Lusaka, Zambia",
-                    phone: "+260211253077",
-                    resources: {
-                        bedsAvailable: 8,
-                        doctorsOnDuty: 3
-                    },
-                    emergencyTypes: ["medical", "general"]
-                },
-                {
-                    id: 5,
-                    name: "Woodlands Police Station",
-                    type: "police",
-                    location: { lat: -15.4000, lng: 28.3000 },
-                    address: "Woodlands Road, Lusaka, Zambia",
-                    phone: "+260211254321",
-                    resources: {
-                        officersAvailable: 5,
-                        vehiclesAvailable: 2
-                    },
-                    emergencyTypes: ["police", "general"]
-                }
-            ]
-        };
+        // Initialize the backend
+        const backend = new EmergencyBackend();
 
         // Current user state
         let currentUser = null;
@@ -2027,7 +1702,6 @@
         let map = null;
         let userMarker = null;
         let recommendedCenter = null;
-        let emergencyRefreshInterval = null;
         let currentCallNumber = null;
         let currentStep = 1;
         let uploadedImages = [];
@@ -2036,21 +1710,14 @@
 
         // Alert notification variables
         let alertSoundEnabled = true;
-        let alertSound = null;
         let alertCounter = 0;
         let pendingAlerts = [];
         let currentAlert = null;
         let alertInterval = null;
-        let alertDuration = 5 * 60 * 1000; // 5 minutes in milliseconds
-
-        // Analytics variables
-        let analyticsMap = null;
-        let typeChart = null;
-        let timeChart = null;
-        let currentReportType = 'daily';
+        let alertDuration = 5 * 60 * 1000;
 
         // Session management
-        const SESSION_DURATION = 10 * 60 * 1000; // 10 minutes
+        const SESSION_DURATION = 10 * 60 * 1000;
 
         // DOM Elements
         const loginModal = document.getElementById('login-modal');
@@ -2095,21 +1762,8 @@
         const soundToggle = document.getElementById('sound-toggle');
         const alertCounterEl = document.getElementById('alert-counter');
 
-        // Analytics elements
-        const dailyReportBtn = document.getElementById('daily-report-btn');
-        const monthlyReportBtn = document.getElementById('monthly-report-btn');
-        const reportPeriod = document.getElementById('report-period');
-        const totalEmergenciesEl = document.getElementById('total-emergencies');
-        const medicalEmergenciesEl = document.getElementById('medical-emergencies');
-        const fireEmergenciesEl = document.getElementById('fire-emergencies');
-        const policeEmergenciesEl = document.getElementById('police-emergencies');
-        const reportTableBody = document.getElementById('report-table-body');
-
         // Show login modal on page load
         document.addEventListener('DOMContentLoaded', function () {
-            // Initialize WebSocket connection
-            initWebSocket();
-
             checkSession();
             initMap();
             setupCallButtons();
@@ -2117,7 +1771,13 @@
             setupImageUpload();
             setupModalEvents();
             setupAlertSystem();
-            setupAnalytics();
+
+            // Subscribe to real-time updates
+            backend.subscribe((emergencies) => {
+                if (currentUser && currentUser.type === 'responder') {
+                    loadEmergencies();
+                }
+            });
         });
 
         // Session management functions
@@ -2139,17 +1799,8 @@
                         contactInfoSection.classList.remove('hidden');
                     } else if (currentUser.type === 'responder') {
                         responderView.classList.remove('hidden');
-                        // Load emergencies and set up auto-refresh
                         loadEmergencies();
-                        if (emergencyRefreshInterval) {
-                            clearInterval(emergencyRefreshInterval);
-                        }
-                        emergencyRefreshInterval = setInterval(loadEmergencies, 5000);
-                        initAnalytics();
                     }
-
-                    // Send user info to server
-                    sendUserInfo();
                 } else {
                     // Session expired
                     localStorage.removeItem('emergencyResponseSession');
@@ -2171,310 +1822,6 @@
             localStorage.removeItem('emergencyResponseSession');
         }
 
-        // Setup analytics
-        function setupAnalytics() {
-            // Set up report type buttons
-            dailyReportBtn.addEventListener('click', function () {
-                currentReportType = 'daily';
-                updateReportButtons();
-                loadAnalyticsData();
-            });
-
-            monthlyReportBtn.addEventListener('click', function () {
-                currentReportType = 'monthly';
-                updateReportButtons();
-                loadAnalyticsData();
-            });
-        }
-
-        function initAnalytics() {
-            loadAnalyticsData();
-        }
-
-        // Update report button styles
-        function updateReportButtons() {
-            if (currentReportType === 'daily') {
-                dailyReportBtn.classList.add('bg-blue-600', 'text-white');
-                dailyReportBtn.classList.remove('bg-gray-200', 'text-gray-700');
-                monthlyReportBtn.classList.add('bg-gray-200', 'text-gray-700');
-                monthlyReportBtn.classList.remove('bg-blue-600', 'text-white');
-                reportPeriod.textContent = 'Showing data for: Today';
-            } else {
-                monthlyReportBtn.classList.add('bg-blue-600', 'text-white');
-                monthlyReportBtn.classList.remove('bg-gray-200', 'text-gray-700');
-                dailyReportBtn.classList.add('bg-gray-200', 'text-gray-700');
-                dailyReportBtn.classList.remove('bg-blue-600', 'text-white');
-                reportPeriod.textContent = 'Showing data for: This Month';
-            }
-        }
-
-        // Load and process analytics data
-        function loadAnalyticsData() {
-            // Filter emergencies based on report type
-            const now = new Date();
-            let filteredEmergencies = [];
-
-            if (currentReportType === 'daily') {
-                // Get emergencies from today
-                filteredEmergencies = emergencyDB.emergencies.filter(emergency => {
-                    const emergencyDate = new Date(emergency.timestamp);
-                    return emergencyDate.toDateString() === now.toDateString();
-                });
-            } else {
-                // Get emergencies from this month
-                filteredEmergencies = emergencyDB.emergencies.filter(emergency => {
-                    const emergencyDate = new Date(emergency.timestamp);
-                    return emergencyDate.getMonth() === now.getMonth() &&
-                        emergencyDate.getFullYear() === now.getFullYear();
-                });
-            }
-
-            // Update summary statistics
-            updateSummaryStats(filteredEmergencies);
-
-            // Update map visualization
-            updateAnalyticsMap(filteredEmergencies);
-
-            // Update charts
-            updateTypeChart(filteredEmergencies);
-            updateTimeChart(filteredEmergencies);
-
-            // Update report table
-            updateReportTable(filteredEmergencies);
-        }
-
-        // Update summary statistics
-        function updateSummaryStats(emergencies) {
-            totalEmergenciesEl.textContent = emergencies.length;
-
-            const medicalCount = emergencies.filter(e => e.type === 'medical').length;
-            const fireCount = emergencies.filter(e => e.type === 'fire').length;
-            const policeCount = emergencies.filter(e => e.type === 'police').length;
-            const otherCount = emergencies.filter(e => e.type === 'general').length;
-
-            medicalEmergenciesEl.textContent = medicalCount;
-            fireEmergenciesEl.textContent = fireCount;
-            policeEmergenciesEl.textContent = policeCount;
-        }
-
-        // Update analytics map with emergency hotspots
-        function updateAnalyticsMap(emergencies) {
-            const mapContainer = document.getElementById('analytics-map');
-
-            // Clear previous map if it exists
-            if (analyticsMap) {
-                analyticsMap.remove();
-            }
-
-            // Create new map centered on Lusaka
-            analyticsMap = L.map('analytics-map').setView([-15.3875, 28.3228], 12);
-
-            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-                attribution: '© OpenStreetMap contributors'
-            }).addTo(analyticsMap);
-
-            // Create a heatmap layer (using circles as a simple approximation)
-            emergencies.forEach(emergency => {
-                let color;
-                switch (emergency.type) {
-                    case 'medical': color = 'red'; break;
-                    case 'fire': color = 'orange'; break;
-                    case 'police': color = 'blue'; break;
-                    default: color = 'gray';
-                }
-
-                L.circle([emergency.location.lat, emergency.location.lng], {
-                    color: color,
-                    fillColor: color,
-                    fillOpacity: 0.5,
-                    radius: 300
-                }).addTo(analyticsMap).bindPopup(`
-                    <strong>${emergency.type.toUpperCase()} Emergency</strong><br>
-                    ${emergency.address}<br>
-                    ${formatTime(emergency.timestamp)}
-                `);
-            });
-
-            // Add rescue centers to the map
-            emergencyDB.rescueCenters.forEach(center => {
-                let iconColor;
-                switch (center.type) {
-                    case 'hospital': iconColor = 'red'; break;
-                    case 'police': iconColor = 'blue'; break;
-                    case 'fire': iconColor = 'orange'; break;
-                    default: iconColor = 'gray';
-                }
-
-                const icon = L.divIcon({
-                    className: 'custom-icon',
-                    html: `<div style="background-color: ${iconColor}; width: 16px; height: 16px; border-radius: 50%; border: 2px solid white; box-shadow: 0 0 10px rgba(0,0,0,0.5);"></div>`,
-                    iconSize: [16, 16],
-                    iconAnchor: [8, 8]
-                });
-
-                L.marker([center.location.lat, center.location.lng], { icon: icon })
-                    .addTo(analyticsMap)
-                    .bindPopup(`
-                        <strong>${center.name}</strong><br>
-                        ${center.address}<br>
-                        Phone: ${center.phone}
-                    `);
-            });
-        }
-
-        // Update emergency type distribution chart
-        function updateTypeChart(emergencies) {
-            const ctx = document.getElementById('type-chart').getContext('2d');
-
-            // Count emergencies by type
-            const typeCounts = {
-                medical: emergencies.filter(e => e.type === 'medical').length,
-                fire: emergencies.filter(e => e.type === 'fire').length,
-                police: emergencies.filter(e => e.type === 'police').length,
-                general: emergencies.filter(e => e.type === 'general').length
-            };
-
-            // Destroy previous chart if it exists
-            if (typeChart) {
-                typeChart.destroy();
-            }
-
-            // Create new chart
-            typeChart = new Chart(ctx, {
-                type: 'doughnut',
-                data: {
-                    labels: ['Medical', 'Fire', 'Police', 'Other'],
-                    datasets: [{
-                        data: [typeCounts.medical, typeCounts.fire, typeCounts.police, typeCounts.general],
-                        backgroundColor: [
-                            '#ef4444', // red
-                            '#f97316', // orange
-                            '#3b82f6', // blue
-                            '#94a3b8'  // gray
-                        ]
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    plugins: {
-                        legend: {
-                            position: 'bottom'
-                        }
-                    }
-                }
-            });
-        }
-
-        // Update time pattern chart
-        function updateTimeChart(emergencies) {
-            const ctx = document.getElementById('time-chart').getContext('2d');
-
-            // Group emergencies by hour
-            const hours = Array.from({ length: 24 }, (_, i) => i);
-            const hourlyCounts = hours.map(hour => {
-                return emergencies.filter(emergency => {
-                    const emergencyHour = new Date(emergency.timestamp).getHours();
-                    return emergencyHour === hour;
-                }).length;
-            });
-
-            // Destroy previous chart if it exists
-            if (timeChart) {
-                timeChart.destroy();
-            }
-
-            // Create new chart
-            timeChart = new Chart(ctx, {
-                type: 'bar',
-                data: {
-                    labels: hours.map(h => `${h}:00`),
-                    datasets: [{
-                        label: 'Emergencies by Hour',
-                        data: hourlyCounts,
-                        backgroundColor: '#3b82f6'
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    scales: {
-                        y: {
-                            beginAtZero: true,
-                            title: {
-                                display: true,
-                                text: 'Number of Emergencies'
-                            }
-                        },
-                        x: {
-                            title: {
-                                display: true,
-                                text: 'Hour of Day'
-                            }
-                        }
-                    }
-                }
-            });
-        }
-
-        // Update detailed report table
-        function updateReportTable(emergencies) {
-            reportTableBody.innerHTML = '';
-
-            // Sort emergencies by timestamp (newest first)
-            const sortedEmergencies = [...emergencies].sort((a, b) => {
-                return new Date(b.timestamp) - new Date(a.timestamp);
-            });
-
-            // Add rows to table
-            sortedEmergencies.forEach(emergency => {
-                const row = document.createElement('tr');
-
-                // Format time
-                const emergencyTime = new Date(emergency.timestamp);
-                const timeString = emergencyTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-
-                // Format type with icon
-                let typeIcon = '';
-                switch (emergency.type) {
-                    case 'medical': typeIcon = '🏥'; break;
-                    case 'fire': typeIcon = '🔥'; break;
-                    case 'police': typeIcon = '👮'; break;
-                    default: typeIcon = '⚠️';
-                }
-
-                row.innerHTML = `
-                    <td class="py-2 px-4">${timeString}</td>
-                    <td class="py-2 px-4">${typeIcon} ${emergency.type.charAt(0).toUpperCase() + emergency.type.slice(1)}</td>
-                    <td class="py-2 px-4">${emergency.address}</td>
-                    <td class="py-2 px-4">
-                        <span class="priority-badge ${getSeverityClass(emergency.severity)}">
-                            ${emergency.severity}
-                        </span>
-                    </td>
-                `;
-
-                reportTableBody.appendChild(row);
-            });
-
-            // If no emergencies, show message
-            if (sortedEmergencies.length === 0) {
-                const row = document.createElement('tr');
-                row.innerHTML = `
-                    <td colspan="4" class="py-4 px-4 text-center text-gray-500">
-                        No emergencies found for this period
-                    </td>
-                `;
-                reportTableBody.appendChild(row);
-            }
-        }
-
-        // Helper function to get severity CSS class
-        function getSeverityClass(severity) {
-            if (severity.includes('Critical')) return 'bg-red-100 text-red-800';
-            if (severity.includes('Serious')) return 'bg-yellow-100 text-yellow-800';
-            if (severity.includes('Moderate')) return 'bg-blue-100 text-blue-800';
-            return 'bg-gray-100 text-gray-800';
-        }
-
         // Setup alert notification system
         function setupAlertSystem() {
             // Setup alert event listeners
@@ -2482,13 +1829,10 @@
             alertDismiss.addEventListener('click', hideAlert);
             alertViewDetails.addEventListener('click', function () {
                 if (currentAlert) {
-                    // Select the emergency in the list
                     const emergencyItem = document.querySelector(`.emergency-item[data-id="${currentAlert.id}"]`);
                     if (emergencyItem) {
                         emergencyItem.scrollIntoView({ behavior: 'smooth', block: 'center' });
                         emergencyItem.classList.add('selected');
-
-                        // Highlight the emergency for a moment
                         setTimeout(() => {
                             emergencyItem.style.backgroundColor = '#fff3cd';
                             setTimeout(() => {
@@ -2511,39 +1855,10 @@
                     soundToggle.innerHTML = '<i class="fas fa-volume-mute"></i>';
                 }
             });
-
-            // Check for new emergencies periodically
-            setInterval(checkForNewEmergencies, 3000);
-        }
-
-        // Check for new emergencies and trigger alerts
-        function checkForNewEmergencies() {
-            // Only check if user is a responder
-            if (!currentUser || currentUser.type !== 'responder') return;
-
-            // Get the latest emergency ID we've seen
-            const latestSeenId = localStorage.getItem('latestSeenEmergencyId') || 0;
-
-            // Find new emergencies (those with ID greater than latest seen)
-            const newEmergencies = emergencyDB.emergencies.filter(
-                emergency => emergency.id > latestSeenId && emergency.status === 'reported'
-            );
-
-            // Update the latest seen ID
-            if (emergencyDB.emergencies.length > 0) {
-                const maxId = Math.max(...emergencyDB.emergencies.map(e => e.id));
-                localStorage.setItem('latestSeenEmergencyId', maxId);
-            }
-
-            // Show alerts for new emergencies
-            newEmergencies.forEach(emergency => {
-                showAlert(emergency);
-            });
         }
 
         // Show alert for a new emergency
         function showAlert(emergency) {
-            // If there's already an alert showing, add to pending queue
             if (alertNotification.classList.contains('show')) {
                 pendingAlerts.push(emergency);
                 updateAlertCounter();
@@ -2576,7 +1891,6 @@
             // Play alert sound if enabled
             if (alertSoundEnabled) {
                 playAlertSound();
-                // Continue playing sound every 10 seconds for 5 minutes
                 alertInterval = setInterval(() => {
                     if (alertSoundEnabled && alertNotification.classList.contains('show')) {
                         playAlertSound();
@@ -2584,7 +1898,7 @@
                 }, 10000);
             }
 
-            // Auto-hide after 5 minutes if not interacted with
+            // Auto-hide after 5 minutes
             setTimeout(() => {
                 if (alertNotification.classList.contains('show')) {
                     hideAlert();
@@ -2597,13 +1911,11 @@
             alertNotification.classList.remove('show', 'pulse');
             currentAlert = null;
 
-            // Clear the alert interval
             if (alertInterval) {
                 clearInterval(alertInterval);
                 alertInterval = null;
             }
 
-            // Show next alert if available
             if (pendingAlerts.length > 0) {
                 setTimeout(() => {
                     const nextAlert = pendingAlerts.shift();
@@ -2616,7 +1928,6 @@
         // Play alert sound
         function playAlertSound() {
             if (alertSoundEnabled) {
-                // Create a simple beep sound using Web Audio API
                 try {
                     const audioContext = new (window.AudioContext || window.webkitAudioContext)();
                     const oscillator = audioContext.createOscillator();
@@ -2634,7 +1945,6 @@
                     oscillator.start(audioContext.currentTime);
                     oscillator.stop(audioContext.currentTime + 0.5);
 
-                    // Repeat after a short delay
                     setTimeout(() => {
                         const oscillator2 = audioContext.createOscillator();
                         const gainNode2 = audioContext.createGain();
@@ -2683,7 +1993,6 @@
                         const imageData = e.target.result;
                         uploadedImages.push(imageData);
 
-                        // Create preview
                         const previewDiv = document.createElement('div');
                         previewDiv.className = 'image-preview';
                         previewDiv.innerHTML = `
@@ -2694,14 +2003,12 @@
                         `;
                         imagePreviewContainer.appendChild(previewDiv);
 
-                        // Add event listener to remove button
                         const removeBtn = previewDiv.querySelector('.remove-image');
                         removeBtn.addEventListener('click', function () {
                             const index = parseInt(this.getAttribute('data-index'));
                             uploadedImages.splice(index, 1);
                             imagePreviewContainer.removeChild(previewDiv);
 
-                            // Update indices for remaining remove buttons
                             const remainingButtons = imagePreviewContainer.querySelectorAll('.remove-image');
                             remainingButtons.forEach((btn, idx) => {
                                 btn.setAttribute('data-index', idx);
@@ -2711,14 +2018,12 @@
                     reader.readAsDataURL(file);
                 }
 
-                // Reset the file input
                 imageUpload.value = '';
             });
         }
 
         // Setup modal events
         function setupModalEvents() {
-            // Close modals when clicking the close button
             document.querySelectorAll('.close-modal').forEach(btn => {
                 btn.addEventListener('click', function () {
                     mapModal.classList.add('hidden');
@@ -2726,7 +2031,6 @@
                 });
             });
 
-            // Close modals when clicking outside the content
             mapModal.addEventListener('click', function (e) {
                 if (e.target === mapModal) {
                     mapModal.classList.add('hidden');
@@ -2739,9 +2043,7 @@
                 }
             });
 
-            // View map button
             viewMapBtn.addEventListener('click', function () {
-                // Check if an emergency is selected
                 const selectedEmergency = document.querySelector('.emergency-item.selected');
                 if (!selectedEmergency) {
                     showNotification('Please select an emergency first', 'error');
@@ -2749,7 +2051,8 @@
                 }
 
                 const emergencyId = parseInt(selectedEmergency.getAttribute('data-id'));
-                const emergency = emergencyDB.emergencies.find(e => e.id === emergencyId);
+                const emergencies = backend.getEmergencies();
+                const emergency = emergencies.find(e => e.id === emergencyId);
 
                 if (emergency) {
                     showEmergencyMap(emergency);
@@ -2757,9 +2060,7 @@
                 }
             });
 
-            // Dispatch unit button
             dispatchUnitBtn.addEventListener('click', function () {
-                // Check if an emergency is selected
                 const selectedEmergency = document.querySelector('.emergency-item.selected');
                 if (!selectedEmergency) {
                     showNotification('Please select an emergency first', 'error');
@@ -2767,14 +2068,14 @@
                 }
 
                 const emergencyId = parseInt(selectedEmergency.getAttribute('data-id'));
-                selectedEmergencyForDispatch = emergencyDB.emergencies.find(e => e.id === emergencyId);
+                const emergencies = backend.getEmergencies();
+                selectedEmergencyForDispatch = emergencies.find(e => e.id === emergencyId);
 
                 if (selectedEmergencyForDispatch) {
                     dispatchModal.classList.remove('hidden');
                 }
             });
 
-            // Confirm dispatch
             confirmDispatchBtn.addEventListener('click', function () {
                 const unit = document.getElementById('dispatch-unit').value;
                 const notes = document.getElementById('dispatch-notes').value;
@@ -2784,40 +2085,32 @@
                     return;
                 }
 
-                // Update emergency status
-                selectedEmergencyForDispatch.status = 'dispatched';
-                selectedEmergencyForDispatch.dispatchedUnit = unit;
-                selectedEmergencyForDispatch.dispatchNotes = notes;
-                selectedEmergencyForDispatch.dispatchTime = new Date();
-
-                // Send update to server
-                updateEmergencyStatus(selectedEmergencyForDispatch.id, 'dispatched', currentUser.name);
+                // Update emergency status in backend
+                backend.updateEmergency(selectedEmergencyForDispatch.id, {
+                    status: 'dispatched',
+                    dispatchedUnit: unit,
+                    dispatchNotes: notes,
+                    dispatchTime: new Date(),
+                    responder: currentUser.name
+                });
 
                 showNotification(`Unit ${unit} has been dispatched to the emergency`, 'success');
                 dispatchModal.classList.add('hidden');
-
-                // Refresh emergencies list
-                loadEmergencies();
-                // Refresh analytics
-                loadAnalyticsData();
             });
         }
 
         // Show emergency on map
         function showEmergencyMap(emergency) {
-            // Clear previous map if it exists
             if (emergencyMap) {
                 emergencyMap.remove();
             }
 
-            // Create new map
             emergencyMap = L.map('emergency-map').setView([emergency.location.lat, emergency.location.lng], 15);
 
             L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
                 attribution: '© OpenStreetMap contributors'
             }).addTo(emergencyMap);
 
-            // Add marker for emergency location
             L.marker([emergency.location.lat, emergency.location.lng])
                 .addTo(emergencyMap)
                 .bindPopup(`
@@ -2828,8 +2121,8 @@
                 `)
                 .openPopup();
 
-            // Add nearby rescue centers to the map
-            emergencyDB.rescueCenters.forEach(center => {
+            const rescueCenters = backend.getRescueCenters();
+            rescueCenters.forEach(center => {
                 let iconColor;
                 switch (center.type) {
                     case 'hospital': iconColor = 'red'; break;
@@ -2863,28 +2156,20 @@
 
         // Navigate to next step
         function goToNextStep() {
-            // Validate current step
             if (!validateCurrentStep()) {
                 return;
             }
 
             if (currentStep < 4) {
-                // Hide current section
                 document.getElementById(`step-${currentStep}`).classList.remove('active');
-
-                // Show next section
                 currentStep++;
                 document.getElementById(`step-${currentStep}`).classList.add('active');
-
-                // Update UI
                 updateStepUI();
 
-                // If we're on the final step, load rescue centers
                 if (currentStep === 4) {
                     loadRescueCenters();
                 }
             } else {
-                // Submit the form if we're on the last step
                 document.getElementById('submit-emergency').click();
             }
         }
@@ -2892,28 +2177,19 @@
         // Navigate to previous step
         function goToPreviousStep() {
             if (currentStep > 1) {
-                // Hide current section
                 document.getElementById(`step-${currentStep}`).classList.remove('active');
-
-                // Show previous section
                 currentStep--;
                 document.getElementById(`step-${currentStep}`).classList.add('active');
-
-                // Update UI
                 updateStepUI();
             }
         }
 
         // Update step UI elements
         function updateStepUI() {
-            // Update progress bar
             const progressPercentage = (currentStep / 4) * 100;
             progressFill.style.width = `${progressPercentage}%`;
-
-            // Update step indicator
             currentStepEl.textContent = currentStep;
 
-            // Update navigation buttons
             if (currentStep === 1) {
                 prevStepBtn.classList.add('hidden');
             } else {
@@ -2932,7 +2208,7 @@
         // Validate current step
         function validateCurrentStep() {
             switch (currentStep) {
-                case 1: // Emergency type
+                case 1:
                     const selectedType = document.querySelector('input[name="emergency-type"]:checked');
                     if (!selectedType) {
                         showNotification('Please select an emergency type', 'error');
@@ -2941,7 +2217,7 @@
                     currentEmergencyType = selectedType.value;
                     return true;
 
-                case 2: // Emergency details
+                case 2:
                     const affectedPeople = document.getElementById('affected-people').value;
                     const severity = document.getElementById('emergency-severity').value;
                     const description = document.getElementById('emergency-description').value;
@@ -2963,14 +2239,12 @@
 
                     return true;
 
-                case 3: // Location
+                case 3:
                     const address = document.getElementById('emergency-address').value;
-
                     if (!address.trim()) {
                         showNotification('Please provide the emergency location address', 'error');
                         return false;
                     }
-
                     return true;
 
                 default:
@@ -3019,18 +2293,7 @@
             logoutBtn.classList.remove('hidden');
             contactInfoSection.classList.remove('hidden');
 
-            // Save session
             saveSession();
-
-            // Clear any existing refresh interval
-            if (emergencyRefreshInterval) {
-                clearInterval(emergencyRefreshInterval);
-                emergencyRefreshInterval = null;
-            }
-
-            // Send user info to server
-            sendUserInfo();
-
             showNotification('Logged in as reporter', 'success');
         });
 
@@ -3045,10 +2308,7 @@
                 return;
             }
 
-            // Check credentials against simulated database
-            const responder = emergencyDB.responders.find(r =>
-                r.email === email && r.password === password && r.organization === organization
-            );
+            const responder = backend.validateResponder(email, password, organization);
 
             if (responder) {
                 currentUser = {
@@ -3064,22 +2324,8 @@
                 responderView.classList.remove('hidden');
                 logoutBtn.classList.remove('hidden');
 
-                // Save session
                 saveSession();
-
-                // Send user info to server
-                sendUserInfo();
-
-                // Load emergencies and set up auto-refresh
                 loadEmergencies();
-                if (emergencyRefreshInterval) {
-                    clearInterval(emergencyRefreshInterval);
-                }
-                emergencyRefreshInterval = setInterval(loadEmergencies, 5000); // Refresh every 5 seconds
-
-                // Initialize analytics
-                initAnalytics();
-
                 showNotification('Logged in as responder', 'success');
             } else {
                 showNotification('Invalid credentials', 'error');
@@ -3099,18 +2345,7 @@
             logoutBtn.classList.remove('hidden');
             contactInfoSection.classList.add('hidden');
 
-            // Save session
             saveSession();
-
-            // Clear any existing refresh interval
-            if (emergencyRefreshInterval) {
-                clearInterval(emergencyRefreshInterval);
-                emergencyRefreshInterval = null;
-            }
-
-            // Send user info to server
-            sendUserInfo();
-
             showNotification('Continuing as guest', 'info');
         });
 
@@ -3123,15 +2358,7 @@
             loginModal.classList.remove('hidden');
             logoutBtn.classList.add('hidden');
 
-            // Clear session
             clearSession();
-
-            // Clear refresh interval
-            if (emergencyRefreshInterval) {
-                clearInterval(emergencyRefreshInterval);
-                emergencyRefreshInterval = null;
-            }
-
             showNotification('Logged out successfully', 'info');
         });
 
@@ -3181,25 +2408,16 @@
                 status: 'reported',
                 timestamp: new Date(),
                 responder: null,
-                images: [...uploadedImages] // Store uploaded images
+                images: [...uploadedImages]
             };
 
-            // Add to simulated database
-            emergencyDB.emergencies.push(emergency);
-
-            // Send to server via WebSocket
-            reportEmergency(emergency);
+            // Add to backend (this will trigger real-time updates)
+            backend.addEmergency(emergency);
 
             showNotification('Emergency reported successfully! Help is on the way.', 'success');
 
-            // Refresh analytics if responder is logged in
-            if (currentUser && currentUser.type === 'responder') {
-                loadAnalyticsData();
-            }
-
             // Reset form
             setTimeout(() => {
-                // Reset form fields
                 document.querySelectorAll('input[name="emergency-type"]').forEach(input => input.checked = false);
                 document.getElementById('affected-people').value = '';
                 document.getElementById('emergency-severity').value = '';
@@ -3214,15 +2432,12 @@
                     document.getElementById('reporter-contact-phone').value = '';
                 }
 
-                // Reset to first step
                 document.getElementById(`step-${currentStep}`).classList.remove('active');
                 currentStep = 1;
                 document.getElementById(`step-${currentStep}`).classList.add('active');
                 updateStepUI();
 
                 currentEmergencyType = null;
-
-                showNotification('Emergency responders have been notified', 'info');
             }, 2000);
         });
 
@@ -3248,7 +2463,6 @@
                 attribution: '© OpenStreetMap contributors'
             }).addTo(map);
 
-            // Try to get user's actual location
             if (navigator.geolocation) {
                 document.getElementById('location-status').textContent = 'Detecting your location...';
 
@@ -3261,7 +2475,6 @@
 
                         map.setView([userLocation.lat, userLocation.lng], 15);
 
-                        // Add a marker for the user's location
                         if (userMarker) {
                             map.removeLayer(userMarker);
                         }
@@ -3270,7 +2483,6 @@
                             .bindPopup('Your location')
                             .openPopup();
 
-                        // Add circle to show accuracy
                         L.circle([userLocation.lat, userLocation.lng], {
                             color: 'blue',
                             fillColor: '#3b82f6',
@@ -3280,29 +2492,20 @@
 
                         document.getElementById('location-status').textContent = 'Location detected';
 
-                        // Update rescue centers based on location
                         if (currentStep === 4) {
                             loadRescueCenters();
-                        }
-
-                        // Send updated location to server
-                        if (currentUser && isConnected) {
-                            sendUserInfo();
                         }
                     },
                     function (error) {
                         console.error('Geolocation error:', error);
-                        // Use default location (Lusaka) if geolocation fails
                         userLocation = { lat: -15.3875, lng: 28.3228 };
 
-                        // Add a marker for the default location
                         userMarker = L.marker([userLocation.lat, userLocation.lng]).addTo(map)
                             .bindPopup('Your approximate location')
                             .openPopup();
 
                         document.getElementById('location-status').textContent = 'Using approximate location';
 
-                        // Update rescue centers based on default location
                         if (currentStep === 4) {
                             loadRescueCenters();
                         }
@@ -3314,24 +2517,21 @@
                     }
                 );
             } else {
-                // Geolocation not supported
                 userLocation = { lat: -15.3875, lng: 28.3228 };
 
-                // Add a marker for the default location
                 userMarker = L.marker([userLocation.lat, userLocation.lng]).addTo(map)
                     .bindPopup('Your approximate location')
                     .openPopup();
 
                 document.getElementById('location-status').textContent = 'Geolocation not supported';
 
-                // Update rescue centers based on default location
                 if (currentStep === 4) {
                     loadRescueCenters();
                 }
             }
 
-            // Add markers for nearby rescue centers
-            emergencyDB.rescueCenters.forEach(center => {
+            const rescueCenters = backend.getRescueCenters();
+            rescueCenters.forEach(center => {
                 let iconColor;
                 switch (center.type) {
                     case 'hospital': iconColor = 'red'; break;
@@ -3364,8 +2564,8 @@
                 return;
             }
 
-            // Calculate distances and filter by emergency type if selected
-            const centersWithDistances = emergencyDB.rescueCenters
+            const rescueCenters = backend.getRescueCenters();
+            const centersWithDistances = rescueCenters
                 .map(center => {
                     const distance = calculateDistance(
                         userLocation.lat, userLocation.lng,
@@ -3380,14 +2580,12 @@
                 })
                 .sort((a, b) => a.distance - b.distance);
 
-            // Find the recommended center (closest relevant center)
             const relevantCenters = centersWithDistances.filter(center => center.isRelevant);
             if (relevantCenters.length > 0) {
                 recommendedCenter = relevantCenters[0];
                 displayRecommendedCenter(recommendedCenter);
             }
 
-            // Display all centers
             if (centersWithDistances.length === 0) {
                 rescueCentersList.innerHTML = '<div class="text-center py-4 text-gray-500">No rescue centers found in your area.</div>';
                 return;
@@ -3453,7 +2651,6 @@
                 rescueCentersList.appendChild(card);
             });
 
-            // Set up the call buttons
             setTimeout(setupCallButtons, 100);
         }
 
@@ -3496,7 +2693,6 @@
 
             recommendedResources.innerHTML = resourcesHtml;
 
-            // Set up the call button for the recommended center
             setTimeout(() => {
                 const recommendedCallBtn = document.querySelector('#recommended-center .call-center');
                 if (recommendedCallBtn) {
@@ -3512,9 +2708,10 @@
         function loadEmergencies() {
             emergenciesList.innerHTML = '';
 
-            const activeEmergencies = emergencyDB.emergencies.filter(e => e.status === 'reported' || e.status === 'dispatched');
-            const respondedEmergencies = emergencyDB.emergencies.filter(e => e.status === 'responded');
-            const resolvedEmergencies = emergencyDB.emergencies.filter(e => e.status === 'resolved');
+            const emergencies = backend.getEmergencies();
+            const activeEmergencies = emergencies.filter(e => e.status === 'reported' || e.status === 'dispatched');
+            const respondedEmergencies = emergencies.filter(e => e.status === 'responded');
+            const resolvedEmergencies = emergencies.filter(e => e.status === 'resolved');
 
             activeEmergenciesEl.textContent = activeEmergencies.length;
             respondedEmergenciesEl.textContent = respondedEmergencies.length;
@@ -3543,11 +2740,10 @@
                 item.setAttribute('data-id', emergency.id);
 
                 // Add new emergency indicator
-                if (emergency.timestamp > Date.now() - 60000) { // Within the last minute
+                if (emergency.timestamp > Date.now() - 60000) {
                     item.classList.add('new-emergency-indicator');
                 }
 
-                // Create image HTML if there are uploaded images
                 let imagesHtml = '';
                 if (emergency.images && emergency.images.length > 0) {
                     imagesHtml = `
@@ -3562,7 +2758,6 @@
                     `;
                 }
 
-                // Add dispatch info if available
                 let dispatchInfo = '';
                 if (emergency.status === 'dispatched') {
                     dispatchInfo = `
@@ -3608,28 +2803,22 @@
 
                 emergenciesList.appendChild(item);
 
-                // Add click event to select emergency
                 item.addEventListener('click', function (e) {
-                    // Don't trigger selection if clicking on buttons or images
                     if (e.target.tagName === 'BUTTON' || e.target.tagName === 'IMG') return;
 
-                    // Remove selection from all items
                     document.querySelectorAll('.emergency-item').forEach(el => {
                         el.classList.remove('selected');
                     });
 
-                    // Add selection to clicked item
                     this.classList.add('selected');
                 });
             });
 
-            // Set up the call buttons
             setTimeout(setupCallButtons, 100);
 
-            // Add event listeners for respond buttons
             document.querySelectorAll('.respond-btn').forEach(btn => {
                 btn.addEventListener('click', function (e) {
-                    e.stopPropagation(); // Prevent triggering the item click event
+                    e.stopPropagation();
                     const emergencyId = parseInt(this.getAttribute('data-id'));
                     respondToEmergency(emergencyId);
                 });
@@ -3652,7 +2841,6 @@
             document.body.appendChild(modal);
             modal.classList.remove('hidden');
 
-            // Close modal when clicking close button or outside
             const closeBtn = modal.querySelector('.close-modal');
             closeBtn.addEventListener('click', function () {
                 document.body.removeChild(modal);
@@ -3667,38 +2855,25 @@
 
         // Respond to emergency
         function respondToEmergency(emergencyId) {
-            const emergencyIndex = emergencyDB.emergencies.findIndex(e => e.id === emergencyId);
-            if (emergencyIndex !== -1) {
-                emergencyDB.emergencies[emergencyIndex].status = 'responded';
-                emergencyDB.emergencies[emergencyIndex].responder = currentUser.name;
+            backend.updateEmergency(emergencyId, {
+                status: 'responded',
+                responder: currentUser.name
+            });
 
-                // Send update to server
-                updateEmergencyStatus(emergencyId, 'responded', currentUser.name);
+            showNotification(`You are now responding to emergency #${emergencyId}`, 'success');
 
-                showNotification(`You are now responding to emergency #${emergencyId}`, 'success');
-                loadEmergencies();
-
-                // Refresh analytics
-                loadAnalyticsData();
-
-                // Simulate response process
-                setTimeout(() => {
-                    emergencyDB.emergencies[emergencyIndex].status = 'resolved';
-
-                    // Send update to server
-                    updateEmergencyStatus(emergencyId, 'resolved', currentUser.name);
-
-                    showNotification(`Emergency #${emergencyId} has been resolved', 'info`);
-                    loadEmergencies();
-                    // Refresh analytics after resolution
-                    loadAnalyticsData();
-                }, 10000);
-            }
+            // Simulate resolution after 10 seconds
+            setTimeout(() => {
+                backend.updateEmergency(emergencyId, {
+                    status: 'resolved'
+                });
+                showNotification(`Emergency #${emergencyId} has been resolved`, 'info');
+            }, 10000);
         }
 
-        // Helper function to calculate distance between two coordinates (Haversine formula)
+        // Helper function to calculate distance between two coordinates
         function calculateDistance(lat1, lon1, lat2, lon2) {
-            const R = 6371; // Earth's radius in km
+            const R = 6371;
             const dLat = deg2rad(lat2 - lat1);
             const dLon = deg2rad(lon2 - lon1);
             const a =
@@ -3721,17 +2896,12 @@
 
         // Function to initiate phone call
         function initiatePhoneCall(phoneNumber) {
-            // Clean the phone number (remove any non-digit characters except +)
             const cleanedNumber = phoneNumber.replace(/[^\d+]/g, '');
             currentCallNumber = cleanedNumber;
 
-            // For mobile devices, this will trigger the phone dialer
-            // For desktop, it won't do anything, so we'll show a message
             if (/Android|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)) {
-                // Mobile device - directly initiate the call
                 window.location.href = `tel:${cleanedNumber}`;
             } else {
-                // Desktop device - show the number and instructions
                 document.getElementById('calling-details').innerHTML = `
                     <p class="text-gray-600">Call: ${phoneNumber}</p>
                     <p class="text-sm text-gray-500 mt-2">On a mobile device, this would automatically dial the number.</p>
@@ -3742,7 +2912,6 @@
 
         // Set up call buttons
         function setupCallButtons() {
-            // Add event listeners to all call buttons for rescue centers
             document.querySelectorAll('.call-center').forEach(btn => {
                 btn.addEventListener('click', function () {
                     const phoneNumber = this.getAttribute('data-phone');
@@ -3750,7 +2919,6 @@
                 });
             });
 
-            // Add event listeners to call reporter buttons for responders
             document.querySelectorAll('.call-reporter').forEach(btn => {
                 btn.addEventListener('click', function () {
                     const phoneNumber = this.getAttribute('data-phone');
@@ -3760,7 +2928,6 @@
                 });
             });
 
-            // Add event listener to emergency call button
             document.querySelector('.floating-action').addEventListener('click', function () {
                 document.getElementById('calling-details').innerHTML = `<p class="text-gray-600">Connecting to emergency services</p>`;
                 initiatePhoneCall('991');
@@ -3796,12 +2963,10 @@
 
             document.body.appendChild(notification);
 
-            // Show notification
             setTimeout(() => {
                 notification.classList.add('show');
             }, 100);
 
-            // Hide notification after 4 seconds
             setTimeout(() => {
                 notification.classList.remove('show');
                 setTimeout(() => {
