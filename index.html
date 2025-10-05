@@ -673,6 +673,67 @@
             justify-content: center;
         }
 
+        /* Real-time connection status styles */
+        .online-indicator {
+            display: inline-block;
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background-color: #10b981;
+            margin-right: 5px;
+        }
+
+        .offline-indicator {
+            display: inline-block;
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background-color: #ef4444;
+            margin-right: 5px;
+        }
+
+        .connection-status {
+            display: flex;
+            align-items: center;
+            font-size: 0.875rem;
+            color: #6b7280;
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            z-index: 50;
+            background: white;
+            padding: 8px 12px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .real-time-badge {
+            background-color: #3b82f6;
+            color: white;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-size: 0.75rem;
+            margin-left: 5px;
+        }
+
+        .new-emergency-indicator {
+            animation: newEmergencyPulse 2s infinite;
+        }
+
+        @keyframes newEmergencyPulse {
+            0% {
+                box-shadow: 0 0 0 0 rgba(59, 130, 246, 0.7);
+            }
+
+            70% {
+                box-shadow: 0 0 0 10px rgba(59, 130, 246, 0);
+            }
+
+            100% {
+                box-shadow: 0 0 0 0 rgba(59, 130, 246, 0);
+            }
+        }
+
         /* Responsive design improvements */
         @media (max-width: 768px) {
             .header-container {
@@ -732,6 +793,13 @@
             .alert-notification {
                 width: 90vw;
                 right: 5vw;
+            }
+
+            .connection-status {
+                top: 10px;
+                left: 10px;
+                font-size: 0.75rem;
+                padding: 6px 10px;
             }
         }
 
@@ -880,6 +948,12 @@
 </head>
 
 <body class="min-h-screen text-gray-800">
+    <!-- Connection Status Indicator -->
+    <div id="connection-status" class="connection-status hidden">
+        <span id="connection-indicator" class="online-indicator"></span>
+        <span id="connection-text">Connected</span>
+    </div>
+
     <!-- Alert Notification -->
     <div id="alert-notification" class="alert-notification">
         <div class="alert-header">
@@ -1582,6 +1656,260 @@
     </div>
 
     <script>
+        // WebSocket connection for real-time functionality
+        let ws = null;
+        let isConnected = false;
+        let reconnectAttempts = 0;
+        const MAX_RECONNECT_ATTEMPTS = 5;
+        const RECONNECT_INTERVAL = 3000; // 3 seconds
+
+        // Initialize WebSocket connection
+        function initWebSocket() {
+            try {
+                // In a real implementation, this would connect to your WebSocket server
+                // For this demo, we'll simulate the connection
+                ws = {
+                    send: function (data) {
+                        console.log('WebSocket message sent:', data);
+                        // Simulate receiving messages after a short delay
+                        setTimeout(() => {
+                            handleWebSocketMessage(JSON.parse(data));
+                        }, 100);
+                    },
+                    close: function () {
+                        console.log('WebSocket connection closed');
+                        isConnected = false;
+                        updateConnectionStatus(false);
+                    }
+                };
+
+                // Simulate successful connection
+                setTimeout(() => {
+                    isConnected = true;
+                    updateConnectionStatus(true);
+
+                    // Send user info to server
+                    if (currentUser) {
+                        sendUserInfo();
+                    }
+
+                    // If responder, request current emergencies
+                    if (currentUser && currentUser.type === 'responder') {
+                        requestEmergencies();
+                    }
+                }, 500);
+
+            } catch (error) {
+                console.error('WebSocket connection failed:', error);
+                handleConnectionError();
+            }
+        }
+
+        // Handle WebSocket messages
+        function handleWebSocketMessage(message) {
+            console.log('WebSocket message received:', message);
+
+            switch (message.type) {
+                case 'user_joined':
+                    showNotification(`${message.userName} joined the system`, 'info');
+                    break;
+
+                case 'user_left':
+                    showNotification(`${message.userName} left the system`, 'info');
+                    break;
+
+                case 'emergency_reported':
+                    handleNewEmergency(message.emergency);
+                    break;
+
+                case 'emergency_updated':
+                    updateEmergency(message.emergency);
+                    break;
+
+                case 'emergency_resolved':
+                    resolveEmergency(message.emergencyId);
+                    break;
+
+                case 'emergencies_list':
+                    if (currentUser && currentUser.type === 'responder') {
+                        updateEmergenciesList(message.emergencies);
+                    }
+                    break;
+
+                case 'user_info_updated':
+                    updateUserInfo(message.user);
+                    break;
+
+                default:
+                    console.log('Unknown message type:', message.type);
+            }
+        }
+
+        // Send user information to server
+        function sendUserInfo() {
+            if (!ws || !isConnected || !currentUser) return;
+
+            const message = {
+                type: 'user_info',
+                user: {
+                    id: currentUser.id || Date.now(),
+                    name: currentUser.name,
+                    type: currentUser.type,
+                    organization: currentUser.organization,
+                    location: userLocation,
+                    timestamp: new Date().toISOString()
+                }
+            };
+
+            ws.send(JSON.stringify(message));
+        }
+
+        // Request current emergencies from server
+        function requestEmergencies() {
+            if (!ws || !isConnected) return;
+
+            const message = {
+                type: 'request_emergencies'
+            };
+
+            ws.send(JSON.stringify(message));
+        }
+
+        // Report a new emergency
+        function reportEmergency(emergency) {
+            if (!ws || !isConnected) return;
+
+            const message = {
+                type: 'report_emergency',
+                emergency: emergency
+            };
+
+            ws.send(JSON.stringify(message));
+        }
+
+        // Update emergency status
+        function updateEmergencyStatus(emergencyId, status, responder = null) {
+            if (!ws || !isConnected) return;
+
+            const message = {
+                type: 'update_emergency',
+                emergencyId: emergencyId,
+                status: status,
+                responder: responder,
+                timestamp: new Date().toISOString()
+            };
+
+            ws.send(JSON.stringify(message));
+        }
+
+        // Handle new emergency from server
+        function handleNewEmergency(emergency) {
+            // Add to local database
+            emergencyDB.emergencies.push(emergency);
+
+            // If user is a responder, update the UI
+            if (currentUser && currentUser.type === 'responder') {
+                loadEmergencies();
+                showAlert(emergency);
+
+                // Update analytics
+                loadAnalyticsData();
+            }
+
+            // Show notification for reporters/guests if it's their emergency
+            if (currentUser && (currentUser.type === 'reporter' || currentUser.type === 'guest') &&
+                emergency.reporter.name === currentUser.name) {
+                showNotification('Your emergency has been received and help is on the way!', 'success');
+            }
+        }
+
+        // Update existing emergency
+        function updateEmergency(emergency) {
+            const index = emergencyDB.emergencies.findIndex(e => e.id === emergency.id);
+            if (index !== -1) {
+                emergencyDB.emergencies[index] = emergency;
+
+                // If user is a responder, update the UI
+                if (currentUser && currentUser.type === 'responder') {
+                    loadEmergencies();
+                }
+
+                // Update analytics
+                loadAnalyticsData();
+            }
+        }
+
+        // Resolve emergency
+        function resolveEmergency(emergencyId) {
+            const index = emergencyDB.emergencies.findIndex(e => e.id === emergencyId);
+            if (index !== -1) {
+                emergencyDB.emergencies[index].status = 'resolved';
+
+                // If user is a responder, update the UI
+                if (currentUser && currentUser.type === 'responder') {
+                    loadEmergencies();
+                }
+
+                // Update analytics
+                loadAnalyticsData();
+
+                // Show notification if it's the reporter's emergency
+                if (currentUser && (currentUser.type === 'reporter' || currentUser.type === 'guest') &&
+                    emergencyDB.emergencies[index].reporter.name === currentUser.name) {
+                    showNotification('Your emergency has been resolved!', 'success');
+                }
+            }
+        }
+
+        // Update emergencies list for responders
+        function updateEmergenciesList(emergencies) {
+            emergencyDB.emergencies = emergencies;
+            loadEmergencies();
+            loadAnalyticsData();
+        }
+
+        // Update user information
+        function updateUserInfo(user) {
+            // In a real implementation, you might update user lists or online status
+            console.log('User info updated:', user);
+        }
+
+        // Handle connection errors
+        function handleConnectionError() {
+            isConnected = false;
+            updateConnectionStatus(false);
+
+            if (reconnectAttempts < MAX_RECONNECT_ATTEMPTS) {
+                reconnectAttempts++;
+                console.log(`Attempting to reconnect... (${reconnectAttempts}/${MAX_RECONNECT_ATTEMPTS})`);
+
+                setTimeout(() => {
+                    initWebSocket();
+                }, RECONNECT_INTERVAL);
+            } else {
+                console.error('Max reconnection attempts reached');
+                showNotification('Connection lost. Please refresh the page.', 'error');
+            }
+        }
+
+        // Update connection status UI
+        function updateConnectionStatus(connected) {
+            const statusEl = document.getElementById('connection-status');
+            const indicatorEl = document.getElementById('connection-indicator');
+            const textEl = document.getElementById('connection-text');
+
+            if (connected) {
+                statusEl.classList.remove('hidden');
+                indicatorEl.className = 'online-indicator';
+                textEl.textContent = 'Connected';
+                reconnectAttempts = 0;
+            } else {
+                statusEl.classList.remove('hidden');
+                indicatorEl.className = 'offline-indicator';
+                textEl.textContent = 'Disconnected';
+            }
+        }
+
         // Data storage (simulating a database)
         const emergencyDB = {
             emergencies: [],
@@ -1779,6 +2107,9 @@
 
         // Show login modal on page load
         document.addEventListener('DOMContentLoaded', function () {
+            // Initialize WebSocket connection
+            initWebSocket();
+
             checkSession();
             initMap();
             setupCallButtons();
@@ -1816,6 +2147,9 @@
                         emergencyRefreshInterval = setInterval(loadEmergencies, 5000);
                         initAnalytics();
                     }
+
+                    // Send user info to server
+                    sendUserInfo();
                 } else {
                     // Session expired
                     localStorage.removeItem('emergencyResponseSession');
@@ -2456,6 +2790,9 @@
                 selectedEmergencyForDispatch.dispatchNotes = notes;
                 selectedEmergencyForDispatch.dispatchTime = new Date();
 
+                // Send update to server
+                updateEmergencyStatus(selectedEmergencyForDispatch.id, 'dispatched', currentUser.name);
+
                 showNotification(`Unit ${unit} has been dispatched to the emergency`, 'success');
                 dispatchModal.classList.add('hidden');
 
@@ -2691,6 +3028,9 @@
                 emergencyRefreshInterval = null;
             }
 
+            // Send user info to server
+            sendUserInfo();
+
             showNotification('Logged in as reporter', 'success');
         });
 
@@ -2726,6 +3066,9 @@
 
                 // Save session
                 saveSession();
+
+                // Send user info to server
+                sendUserInfo();
 
                 // Load emergencies and set up auto-refresh
                 loadEmergencies();
@@ -2764,6 +3107,9 @@
                 clearInterval(emergencyRefreshInterval);
                 emergencyRefreshInterval = null;
             }
+
+            // Send user info to server
+            sendUserInfo();
 
             showNotification('Continuing as guest', 'info');
         });
@@ -2840,6 +3186,9 @@
 
             // Add to simulated database
             emergencyDB.emergencies.push(emergency);
+
+            // Send to server via WebSocket
+            reportEmergency(emergency);
 
             showNotification('Emergency reported successfully! Help is on the way.', 'success');
 
@@ -2934,6 +3283,11 @@
                         // Update rescue centers based on location
                         if (currentStep === 4) {
                             loadRescueCenters();
+                        }
+
+                        // Send updated location to server
+                        if (currentUser && isConnected) {
+                            sendUserInfo();
                         }
                     },
                     function (error) {
@@ -3188,6 +3542,11 @@
                 item.className = `emergency-item ${severityClass} p-4 bg-white rounded-lg shadow`;
                 item.setAttribute('data-id', emergency.id);
 
+                // Add new emergency indicator
+                if (emergency.timestamp > Date.now() - 60000) { // Within the last minute
+                    item.classList.add('new-emergency-indicator');
+                }
+
                 // Create image HTML if there are uploaded images
                 let imagesHtml = '';
                 if (emergency.images && emergency.images.length > 0) {
@@ -3224,6 +3583,7 @@
                                     ${emergency.severity}
                                 </span>
                                 <span class="text-sm text-gray-500">${formatTime(emergency.timestamp)}</span>
+                                ${emergency.timestamp > Date.now() - 60000 ? '<span class="real-time-badge">NEW</span>' : ''}
                             </div>
                             <p class="text-sm mt-2"><i class="fas fa-map-marker-alt mr-1"></i> ${emergency.address} ${emergency.landmark ? `(${emergency.landmark})` : ''}</p>
                             <p class="text-sm mt-1"><i class="fas fa-user mr-1"></i> Reported by: ${emergency.reporter.name}</p>
@@ -3312,6 +3672,9 @@
                 emergencyDB.emergencies[emergencyIndex].status = 'responded';
                 emergencyDB.emergencies[emergencyIndex].responder = currentUser.name;
 
+                // Send update to server
+                updateEmergencyStatus(emergencyId, 'responded', currentUser.name);
+
                 showNotification(`You are now responding to emergency #${emergencyId}`, 'success');
                 loadEmergencies();
 
@@ -3321,6 +3684,10 @@
                 // Simulate response process
                 setTimeout(() => {
                     emergencyDB.emergencies[emergencyIndex].status = 'resolved';
+
+                    // Send update to server
+                    updateEmergencyStatus(emergencyId, 'resolved', currentUser.name);
+
                     showNotification(`Emergency #${emergencyId} has been resolved', 'info`);
                     loadEmergencies();
                     // Refresh analytics after resolution
