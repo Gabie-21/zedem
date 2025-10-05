@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Zambia Emergency Response - Report Emergency</title>
+    <title>Zambia Emergency Response - Emergency Reporting System</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -500,6 +500,179 @@
             position: relative;
         }
 
+        /* Alert Notification Styles */
+        .alert-notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 10000;
+            width: 400px;
+            max-width: 90vw;
+            background: linear-gradient(135deg, #ff4d4d 0%, #cc0000 100%);
+            color: white;
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            transform: translateX(calc(100% + 20px));
+            transition: transform 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            border-left: 6px solid #ffcc00;
+            overflow: hidden;
+        }
+
+        .alert-notification.show {
+            transform: translateX(0);
+        }
+
+        .alert-notification.pulse {
+            animation: alertPulse 2s infinite;
+        }
+
+        @keyframes alertPulse {
+            0% {
+                box-shadow: 0 0 0 0 rgba(255, 77, 77, 0.7);
+            }
+
+            70% {
+                box-shadow: 0 0 0 15px rgba(255, 77, 77, 0);
+            }
+
+            100% {
+                box-shadow: 0 0 0 0 rgba(255, 77, 77, 0);
+            }
+        }
+
+        .alert-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 10px;
+        }
+
+        .alert-title {
+            font-size: 1.25rem;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+        }
+
+        .alert-icon {
+            margin-right: 10px;
+            font-size: 1.5rem;
+        }
+
+        .alert-close {
+            background: none;
+            border: none;
+            color: white;
+            font-size: 1.2rem;
+            cursor: pointer;
+            opacity: 0.8;
+            transition: opacity 0.2s;
+        }
+
+        .alert-close:hover {
+            opacity: 1;
+        }
+
+        .alert-content {
+            margin-bottom: 15px;
+            line-height: 1.5;
+        }
+
+        .alert-details {
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 8px;
+            padding: 10px;
+            margin-bottom: 15px;
+        }
+
+        .alert-detail-row {
+            display: flex;
+            margin-bottom: 5px;
+        }
+
+        .alert-detail-label {
+            font-weight: 600;
+            width: 120px;
+            flex-shrink: 0;
+        }
+
+        .alert-actions {
+            display: flex;
+            gap: 10px;
+        }
+
+        .alert-btn {
+            flex: 1;
+            padding: 8px 12px;
+            border: none;
+            border-radius: 6px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            text-align: center;
+        }
+
+        .alert-btn-primary {
+            background: #ffcc00;
+            color: #333;
+        }
+
+        .alert-btn-primary:hover {
+            background: #ffdb4d;
+        }
+
+        .alert-btn-secondary {
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+        }
+
+        .alert-btn-secondary:hover {
+            background: rgba(255, 255, 255, 0.3);
+        }
+
+        .alert-sound-toggle {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            z-index: 1000;
+            background: #3b82f6;
+            color: white;
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+            transition: all 0.3s;
+        }
+
+        .alert-sound-toggle.muted {
+            background: #6b7280;
+        }
+
+        .alert-sound-toggle:hover {
+            transform: scale(1.1);
+        }
+
+        .alert-counter {
+            position: absolute;
+            top: -5px;
+            right: -5px;
+            background: #ef4444;
+            color: white;
+            font-size: 0.75rem;
+            font-weight: bold;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
         /* Responsive design improvements */
         @media (max-width: 768px) {
             .header-container {
@@ -555,6 +728,11 @@
                 height: 70%;
                 width: 95%;
             }
+
+            .alert-notification {
+                width: 90vw;
+                right: 5vw;
+            }
         }
 
         @media (max-width: 480px) {
@@ -592,6 +770,10 @@
             .image-preview {
                 width: 80px;
                 height: 80px;
+            }
+
+            .alert-actions {
+                flex-direction: column;
             }
         }
 
@@ -698,6 +880,54 @@
 </head>
 
 <body class="min-h-screen text-gray-800">
+    <!-- Alert Notification -->
+    <div id="alert-notification" class="alert-notification">
+        <div class="alert-header">
+            <div class="alert-title">
+                <i class="fas fa-bell alert-icon"></i>
+                <span>NEW EMERGENCY ALERT</span>
+            </div>
+            <button class="alert-close" id="alert-close">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        <div class="alert-content">
+            A new emergency has been reported and requires immediate attention.
+        </div>
+        <div class="alert-details">
+            <div class="alert-detail-row">
+                <span class="alert-detail-label">Type:</span>
+                <span id="alert-type">Medical Emergency</span>
+            </div>
+            <div class="alert-detail-row">
+                <span class="alert-detail-label">Location:</span>
+                <span id="alert-location">Unknown Location</span>
+            </div>
+            <div class="alert-detail-row">
+                <span class="alert-detail-label">Time:</span>
+                <span id="alert-time">Just now</span>
+            </div>
+            <div class="alert-detail-row">
+                <span class="alert-detail-label">Severity:</span>
+                <span id="alert-severity">Critical</span>
+            </div>
+        </div>
+        <div class="alert-actions">
+            <button class="alert-btn alert-btn-primary" id="alert-view-details">
+                View Details
+            </button>
+            <button class="alert-btn alert-btn-secondary" id="alert-dismiss">
+                Dismiss
+            </button>
+        </div>
+    </div>
+
+    <!-- Sound Toggle Button -->
+    <div class="alert-sound-toggle" id="sound-toggle">
+        <i class="fas fa-volume-up"></i>
+        <div class="alert-counter hidden" id="alert-counter">0</div>
+    </div>
+
     <!-- Login Modal -->
     <div id="login-modal" class="modal">
         <div class="modal-content">
@@ -1180,18 +1410,19 @@
         <!-- Add this section to the Responder tab, after the Response Tools section -->
         <div class="emergency-card p-5 mt-6">
             <h3 class="text-lg font-bold mb-4">Emergency Analytics</h3>
-        
+
             <!-- Time Period Selector -->
             <div class="flex justify-between items-center mb-6">
                 <div class="flex space-x-2">
                     <button id="daily-report-btn" class="px-4 py-2 bg-blue-600 text-white rounded-lg font-medium">Daily
                         Report</button>
-                    <button id="monthly-report-btn" class="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg font-medium">Monthly
+                    <button id="monthly-report-btn"
+                        class="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg font-medium">Monthly
                         Report</button>
                 </div>
                 <div class="text-sm text-gray-600" id="report-period">Showing data for: Today</div>
             </div>
-        
+
             <!-- Summary Stats -->
             <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
                 <div class="bg-blue-50 p-4 rounded-lg text-center">
@@ -1211,13 +1442,13 @@
                     <div class="text-sm text-gray-600">Police Cases</div>
                 </div>
             </div>
-        
+
             <!-- Map Visualization -->
             <div class="mb-6">
                 <h4 class="font-medium mb-2">Emergency Hotspots</h4>
                 <div id="analytics-map" style="height: 300px; border-radius: 8px;"></div>
             </div>
-        
+
             <!-- Emergency Type Distribution -->
             <div class="mb-6">
                 <h4 class="font-medium mb-2">Emergency Type Distribution</h4>
@@ -1225,7 +1456,7 @@
                     <canvas id="type-chart" height="100"></canvas>
                 </div>
             </div>
-        
+
             <!-- Time Pattern Chart -->
             <div class="mb-6">
                 <h4 class="font-medium mb-2">Emergency Patterns</h4>
@@ -1233,7 +1464,7 @@
                     <canvas id="time-chart" height="100"></canvas>
                 </div>
             </div>
-        
+
             <!-- Detailed Report Table -->
             <div>
                 <h4 class="font-medium mb-2">Detailed Report</h4>
@@ -1476,6 +1707,13 @@
         let emergencyMap = null;
         let selectedEmergencyForDispatch = null;
 
+        // Alert notification variables
+        let alertSoundEnabled = true;
+        let alertSound = null;
+        let alertCounter = 0;
+        let pendingAlerts = [];
+        let currentAlert = null;
+
         // DOM Elements
         const loginModal = document.getElementById('login-modal');
         const reporterView = document.getElementById('reporter-view');
@@ -1507,6 +1745,18 @@
         const confirmDispatchBtn = document.getElementById('confirm-dispatch');
         const emergencyMapContainer = document.getElementById('emergency-map');
 
+        // Alert notification elements
+        const alertNotification = document.getElementById('alert-notification');
+        const alertClose = document.getElementById('alert-close');
+        const alertType = document.getElementById('alert-type');
+        const alertLocation = document.getElementById('alert-location');
+        const alertTime = document.getElementById('alert-time');
+        const alertSeverity = document.getElementById('alert-severity');
+        const alertViewDetails = document.getElementById('alert-view-details');
+        const alertDismiss = document.getElementById('alert-dismiss');
+        const soundToggle = document.getElementById('sound-toggle');
+        const alertCounterEl = document.getElementById('alert-counter');
+
         // Show login modal on page load
         document.addEventListener('DOMContentLoaded', function () {
             initMap();
@@ -1514,7 +1764,189 @@
             setupFormNavigation();
             setupImageUpload();
             setupModalEvents();
+            setupAlertSystem();
         });
+
+        // Setup alert notification system
+        function setupAlertSystem() {
+            // Setup alert event listeners
+            alertClose.addEventListener('click', hideAlert);
+            alertDismiss.addEventListener('click', hideAlert);
+            alertViewDetails.addEventListener('click', function () {
+                if (currentAlert) {
+                    // Select the emergency in the list
+                    const emergencyItem = document.querySelector(`.emergency-item[data-id="${currentAlert.id}"]`);
+                    if (emergencyItem) {
+                        emergencyItem.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                        emergencyItem.classList.add('selected');
+
+                        // Highlight the emergency for a moment
+                        setTimeout(() => {
+                            emergencyItem.style.backgroundColor = '#fff3cd';
+                            setTimeout(() => {
+                                emergencyItem.style.backgroundColor = '';
+                            }, 3000);
+                        }, 100);
+                    }
+                }
+                hideAlert();
+            });
+
+            // Sound toggle
+            soundToggle.addEventListener('click', function () {
+                alertSoundEnabled = !alertSoundEnabled;
+                if (alertSoundEnabled) {
+                    soundToggle.classList.remove('muted');
+                    soundToggle.innerHTML = '<i class="fas fa-volume-up"></i>';
+                } else {
+                    soundToggle.classList.add('muted');
+                    soundToggle.innerHTML = '<i class="fas fa-volume-mute"></i>';
+                }
+            });
+
+            // Check for new emergencies periodically
+            setInterval(checkForNewEmergencies, 3000);
+        }
+
+        // Check for new emergencies and trigger alerts
+        function checkForNewEmergencies() {
+            // Only check if user is a responder
+            if (!currentUser || currentUser.type !== 'responder') return;
+
+            // Get the latest emergency ID we've seen
+            const latestSeenId = localStorage.getItem('latestSeenEmergencyId') || 0;
+
+            // Find new emergencies (those with ID greater than latest seen)
+            const newEmergencies = emergencyDB.emergencies.filter(
+                emergency => emergency.id > latestSeenId && emergency.status === 'reported'
+            );
+
+            // Update the latest seen ID
+            if (emergencyDB.emergencies.length > 0) {
+                const maxId = Math.max(...emergencyDB.emergencies.map(e => e.id));
+                localStorage.setItem('latestSeenEmergencyId', maxId);
+            }
+
+            // Show alerts for new emergencies
+            newEmergencies.forEach(emergency => {
+                showAlert(emergency);
+            });
+        }
+
+        // Show alert for a new emergency
+        function showAlert(emergency) {
+            // If there's already an alert showing, add to pending queue
+            if (alertNotification.classList.contains('show')) {
+                pendingAlerts.push(emergency);
+                updateAlertCounter();
+                return;
+            }
+
+            currentAlert = emergency;
+
+            // Update alert content
+            alertType.textContent = emergency.type.charAt(0).toUpperCase() + emergency.type.slice(1) + ' Emergency';
+            alertLocation.textContent = emergency.address;
+            alertTime.textContent = formatTime(emergency.timestamp);
+            alertSeverity.textContent = emergency.severity;
+
+            // Add severity-based styling
+            alertSeverity.className = '';
+            if (emergency.severity.includes('Critical')) {
+                alertSeverity.classList.add('priority-badge', 'bg-red-100', 'text-red-800');
+            } else if (emergency.severity.includes('Serious')) {
+                alertSeverity.classList.add('priority-badge', 'bg-yellow-100', 'text-yellow-800');
+            } else if (emergency.severity.includes('Moderate')) {
+                alertSeverity.classList.add('priority-badge', 'bg-blue-100', 'text-blue-800');
+            } else {
+                alertSeverity.classList.add('priority-badge', 'bg-gray-100', 'text-gray-800');
+            }
+
+            // Show the alert
+            alertNotification.classList.add('show', 'pulse');
+
+            // Play alert sound if enabled
+            if (alertSoundEnabled) {
+                playAlertSound();
+            }
+
+            // Auto-hide after 10 seconds if not interacted with
+            setTimeout(() => {
+                if (alertNotification.classList.contains('show')) {
+                    hideAlert();
+                }
+            }, 10000);
+        }
+
+        // Hide the current alert and show next if available
+        function hideAlert() {
+            alertNotification.classList.remove('show', 'pulse');
+            currentAlert = null;
+
+            // Show next alert if available
+            if (pendingAlerts.length > 0) {
+                setTimeout(() => {
+                    const nextAlert = pendingAlerts.shift();
+                    showAlert(nextAlert);
+                    updateAlertCounter();
+                }, 500);
+            }
+        }
+
+        // Play alert sound
+        function playAlertSound() {
+            if (alertSoundEnabled) {
+                // Create a simple beep sound using Web Audio API
+                try {
+                    const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                    const oscillator = audioContext.createOscillator();
+                    const gainNode = audioContext.createGain();
+
+                    oscillator.connect(gainNode);
+                    gainNode.connect(audioContext.destination);
+
+                    oscillator.frequency.value = 800;
+                    oscillator.type = 'sine';
+
+                    gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
+                    gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.5);
+
+                    oscillator.start(audioContext.currentTime);
+                    oscillator.stop(audioContext.currentTime + 0.5);
+
+                    // Repeat after a short delay
+                    setTimeout(() => {
+                        const oscillator2 = audioContext.createOscillator();
+                        const gainNode2 = audioContext.createGain();
+
+                        oscillator2.connect(gainNode2);
+                        gainNode2.connect(audioContext.destination);
+
+                        oscillator2.frequency.value = 600;
+                        oscillator2.type = 'sine';
+
+                        gainNode2.gain.setValueAtTime(0.3, audioContext.currentTime);
+                        gainNode2.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.5);
+
+                        oscillator2.start(audioContext.currentTime);
+                        oscillator2.stop(audioContext.currentTime + 0.5);
+                    }, 600);
+                } catch (e) {
+                    console.error('Error playing alert sound:', e);
+                }
+            }
+        }
+
+        // Update alert counter badge
+        function updateAlertCounter() {
+            alertCounter = pendingAlerts.length;
+            if (alertCounter > 0) {
+                alertCounterEl.textContent = alertCounter;
+                alertCounterEl.classList.remove('hidden');
+            } else {
+                alertCounterEl.classList.add('hidden');
+            }
+        }
 
         // Setup image upload functionality
         function setupImageUpload() {
@@ -1909,7 +2341,6 @@
                 emergencyRefreshInterval = setInterval(loadEmergencies, 5000); // Refresh every 5 seconds
 
                 showNotification('Logged in as responder', 'success');
-                initAnalytics();
             } else {
                 showNotification('Invalid credentials', 'error');
             }
@@ -2607,327 +3038,6 @@
             const randomStatus = statuses[Math.floor(Math.random() * statuses.length)];
             document.getElementById('status').textContent = randomStatus;
         }, 8000);
-    // ===== ANALYTICS CODE =====
-                // Analytics variables
-                let analyticsMap = null;
-                let typeChart = null;
-                let timeChart = null;
-                let currentReportType = 'daily';
-
-                // Initialize analytics when responder view is shown
-                function initAnalytics() {
-                    // Load analytics data
-                    loadAnalyticsData();
-
-                // Set up report type buttons
-                document.getElementById('daily-report-btn').addEventListener('click', function() {
-                    currentReportType = 'daily';
-                updateReportButtons();
-                loadAnalyticsData();
-        });
-
-                document.getElementById('monthly-report-btn').addEventListener('click', function() {
-                    currentReportType = 'monthly';
-                updateReportButtons();
-                loadAnalyticsData();
-        });
-    }
-
-                // Update report button styles
-                function updateReportButtons() {
-        const dailyBtn = document.getElementById('daily-report-btn');
-                const monthlyBtn = document.getElementById('monthly-report-btn');
-
-                if (currentReportType === 'daily') {
-                    dailyBtn.classList.add('bg-blue-600', 'text-white');
-                dailyBtn.classList.remove('bg-gray-200', 'text-gray-700');
-                monthlyBtn.classList.add('bg-gray-200', 'text-gray-700');
-                monthlyBtn.classList.remove('bg-blue-600', 'text-white');
-                document.getElementById('report-period').textContent = 'Showing data for: Today';
-        } else {
-                    monthlyBtn.classList.add('bg-blue-600', 'text-white');
-                monthlyBtn.classList.remove('bg-gray-200', 'text-gray-700');
-                dailyBtn.classList.add('bg-gray-200', 'text-gray-700');
-                dailyBtn.classList.remove('bg-blue-600', 'text-white');
-                document.getElementById('report-period').textContent = 'Showing data for: This Month';
-        }
-    }
-
-                // Load and process analytics data
-                function loadAnalyticsData() {
-        // Filter emergencies based on report type
-        const now = new Date();
-                let filteredEmergencies = [];
-
-                if (currentReportType === 'daily') {
-                    // Get emergencies from today
-                    filteredEmergencies = emergencyDB.emergencies.filter(emergency => {
-                        const emergencyDate = new Date(emergency.timestamp);
-                        return emergencyDate.toDateString() === now.toDateString();
-                    });
-        } else {
-                    // Get emergencies from this month
-                    filteredEmergencies = emergencyDB.emergencies.filter(emergency => {
-                        const emergencyDate = new Date(emergency.timestamp);
-                        return emergencyDate.getMonth() === now.getMonth() &&
-                            emergencyDate.getFullYear() === now.getFullYear();
-                    });
-        }
-
-                // Update summary statistics
-                updateSummaryStats(filteredEmergencies);
-
-                // Update map visualization
-                updateAnalyticsMap(filteredEmergencies);
-
-                // Update charts
-                updateTypeChart(filteredEmergencies);
-                updateTimeChart(filteredEmergencies);
-
-                // Update report table
-                updateReportTable(filteredEmergencies);
-    }
-
-                // Update summary statistics
-                function updateSummaryStats(emergencies) {
-                    document.getElementById('total-emergencies').textContent = emergencies.length;
-        
-        const medicalCount = emergencies.filter(e => e.type === 'medical').length;
-        const fireCount = emergencies.filter(e => e.type === 'fire').length;
-        const policeCount = emergencies.filter(e => e.type === 'police').length;
-        const otherCount = emergencies.filter(e => e.type === 'general').length;
-
-                document.getElementById('medical-emergencies').textContent = medicalCount;
-                document.getElementById('fire-emergencies').textContent = fireCount;
-                document.getElementById('police-emergencies').textContent = policeCount;
-    }
-
-                // Update analytics map with emergency hotspots
-                function updateAnalyticsMap(emergencies) {
-        const mapContainer = document.getElementById('analytics-map');
-
-                // Clear previous map if it exists
-                if (analyticsMap) {
-                    analyticsMap.remove();
-        }
-
-                // Create new map centered on Lusaka
-                analyticsMap = L.map('analytics-map').setView([-15.3875, 28.3228], 12);
-
-                L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-                    attribution: '© OpenStreetMap contributors'
-        }).addTo(analyticsMap);
-
-        // Add heatmap layer
-        const heatmapPoints = emergencies.map(emergency => [
-                emergency.location.lat,
-                emergency.location.lng,
-                0.5 // intensity
-                ]);
-
-        // Create a heatmap layer (using circles as a simple approximation)
-        emergencies.forEach(emergency => {
-                    let color;
-                switch(emergency.type) {
-                case 'medical': color = 'red'; break;
-                case 'fire': color = 'orange'; break;
-                case 'police': color = 'blue'; break;
-                default: color = 'gray';
-            }
-
-                L.circle([emergency.location.lat, emergency.location.lng], {
-                    color: color,
-                fillColor: color,
-                fillOpacity: 0.5,
-                radius: 300
-            }).addTo(analyticsMap).bindPopup(`
-                <strong>${emergency.type.toUpperCase()} Emergency</strong><br>
-                    ${emergency.address}<br>
-                        ${formatTime(emergency.timestamp)}
-                        `);
-        });
-
-        // Add rescue centers to the map
-        emergencyDB.rescueCenters.forEach(center => {
-                            let iconColor;
-                        switch (center.type) {
-                case 'hospital': iconColor = 'red'; break;
-                        case 'police': iconColor = 'blue'; break;
-                        case 'fire': iconColor = 'orange'; break;
-                        default: iconColor = 'gray';
-            }
-
-                        const icon = L.divIcon({
-                            className: 'custom-icon',
-                        html: `<div style="background-color: ${iconColor}; width: 16px; height: 16px; border-radius: 50%; border: 2px solid white; box-shadow: 0 0 10px rgba(0,0,0,0.5);"></div>`,
-                        iconSize: [16, 16],
-                        iconAnchor: [8, 8]
-            });
-
-                        L.marker([center.location.lat, center.location.lng], {icon: icon })
-                        .addTo(analyticsMap)
-                        .bindPopup(`
-                        <strong>${center.name}</strong><br>
-                            ${center.address}<br>
-                                Phone: ${center.phone}
-                                `);
-        });
-    }
-
-                                // Update emergency type distribution chart
-                                function updateTypeChart(emergencies) {
-        const ctx = document.getElementById('type-chart').getContext('2d');
-
-                                // Count emergencies by type
-                                const typeCounts = {
-                                    medical: emergencies.filter(e => e.type === 'medical').length,
-            fire: emergencies.filter(e => e.type === 'fire').length,
-            police: emergencies.filter(e => e.type === 'police').length,
-            general: emergencies.filter(e => e.type === 'general').length
-        };
-
-                                // Destroy previous chart if it exists
-                                if (typeChart) {
-                                    typeChart.destroy();
-        }
-
-                                // Create new chart
-                                typeChart = new Chart(ctx, {
-                                    type: 'doughnut',
-                                data: {
-                                    labels: ['Medical', 'Fire', 'Police', 'Other'],
-                                datasets: [{
-                                    data: [typeCounts.medical, typeCounts.fire, typeCounts.police, typeCounts.general],
-                                backgroundColor: [
-                                '#ef4444', // red
-                                '#f97316', // orange
-                                '#3b82f6', // blue
-                                '#94a3b8'  // gray
-                                ]
-                }]
-            },
-                                options: {
-                                    responsive: true,
-                                plugins: {
-                                    legend: {
-                                    position: 'bottom'
-                    }
-                }
-            }
-        });
-    }
-
-                                // Update time pattern chart
-                                function updateTimeChart(emergencies) {
-        const ctx = document.getElementById('time-chart').getContext('2d');
-
-                                // Group emergencies by hour
-                                const hours = Array.from({length: 24}, (_, i) => i);
-        const hourlyCounts = hours.map(hour => {
-            return emergencies.filter(emergency => {
-                const emergencyHour = new Date(emergency.timestamp).getHours();
-                                return emergencyHour === hour;
-            }).length;
-        });
-
-                                // Destroy previous chart if it exists
-                                if (timeChart) {
-                                    timeChart.destroy();
-        }
-
-                                // Create new chart
-                                timeChart = new Chart(ctx, {
-                                    type: 'bar',
-                                data: {
-                                    labels: hours.map(h => `${h}:00`),
-                                datasets: [{
-                                    label: 'Emergencies by Hour',
-                                data: hourlyCounts,
-                                backgroundColor: '#3b82f6'
-                }]
-            },
-                                options: {
-                                    responsive: true,
-                                scales: {
-                                    y: {
-                                    beginAtZero: true,
-                                title: {
-                                    display: true,
-                                text: 'Number of Emergencies'
-                        }
-                    },
-                                x: {
-                                    title: {
-                                    display: true,
-                                text: 'Hour of Day'
-                        }
-                    }
-                }
-            }
-        });
-    }
-
-                                // Update detailed report table
-                                function updateReportTable(emergencies) {
-        const tableBody = document.getElementById('report-table-body');
-                                tableBody.innerHTML = '';
-
-        // Sort emergencies by timestamp (newest first)
-        const sortedEmergencies = [...emergencies].sort((a, b) => {
-            return new Date(b.timestamp) - new Date(a.timestamp);
-        });
-
-        // Add rows to table
-        sortedEmergencies.forEach(emergency => {
-            const row = document.createElement('tr');
-
-                                // Format time
-                                const emergencyTime = new Date(emergency.timestamp);
-                                const timeString = emergencyTime.toLocaleTimeString([], {hour: '2-digit', minute: '2-digit'});
-
-                                // Format type with icon
-                                let typeIcon = '';
-                                switch(emergency.type) {
-                case 'medical': typeIcon = '🏥'; break;
-                                case 'fire': typeIcon = '🔥'; break;
-                                case 'police': typeIcon = '👮'; break;
-                                default: typeIcon = '⚠️';
-            }
-
-                                row.innerHTML = `
-                                <td class="py-2 px-4">${timeString}</td>
-                                <td class="py-2 px-4">${typeIcon} ${emergency.type.charAt(0).toUpperCase() + emergency.type.slice(1)}</td>
-                                <td class="py-2 px-4">${emergency.address}</td>
-                                <td class="py-2 px-4">
-                                    <span class="priority-badge ${getSeverityClass(emergency.severity)}">
-                                        ${emergency.severity}
-                                    </span>
-                                </td>
-                                `;
-
-                                tableBody.appendChild(row);
-        });
-
-                                // If no emergencies, show message
-                                if (sortedEmergencies.length === 0) {
-            const row = document.createElement('tr');
-                                row.innerHTML = `
-                                <td colspan="4" class="py-4 px-4 text-center text-gray-500">
-                                    No emergencies found for this period
-                                </td>
-            `;
-            tableBody.appendChild(row);
-        }
-    }
-
-    // Helper function to get severity CSS class
-    function getSeverityClass(severity) {
-        if (severity.includes('Critical')) return 'bg-red-100 text-red-800';
-        if (severity.includes('Serious')) return 'bg-yellow-100 text-yellow-800';
-        if (severity.includes('Moderate')) return 'bg-blue-100 text-blue-800';
-        return 'bg-gray-100 text-gray-800';
-    }
-    // ===== END ANALYTICS CODE =====
     </script>
 </body>
 
