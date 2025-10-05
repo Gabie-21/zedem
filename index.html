@@ -1407,7 +1407,7 @@
                 </div>
             </div>
         </div>
-        <!-- Add this section to the Responder tab, after the Response Tools section -->
+        <!-- Analytics Section -->
         <div class="emergency-card p-5 mt-6">
             <h3 class="text-lg font-bold mb-4">Emergency Analytics</h3>
 
@@ -1417,8 +1417,7 @@
                     <button id="daily-report-btn" class="px-4 py-2 bg-blue-600 text-white rounded-lg font-medium">Daily
                         Report</button>
                     <button id="monthly-report-btn"
-                        class="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg font-medium">Monthly
-                        Report</button>
+                        class="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg font-medium">Monthly Report</button>
                 </div>
                 <div class="text-sm text-gray-600" id="report-period">Showing data for: Today</div>
             </div>
@@ -1713,6 +1712,17 @@
         let alertCounter = 0;
         let pendingAlerts = [];
         let currentAlert = null;
+        let alertInterval = null;
+        let alertDuration = 5 * 60 * 1000; // 5 minutes in milliseconds
+
+        // Analytics variables
+        let analyticsMap = null;
+        let typeChart = null;
+        let timeChart = null;
+        let currentReportType = 'daily';
+
+        // Session management
+        const SESSION_DURATION = 10 * 60 * 1000; // 10 minutes
 
         // DOM Elements
         const loginModal = document.getElementById('login-modal');
@@ -1757,15 +1767,379 @@
         const soundToggle = document.getElementById('sound-toggle');
         const alertCounterEl = document.getElementById('alert-counter');
 
+        // Analytics elements
+        const dailyReportBtn = document.getElementById('daily-report-btn');
+        const monthlyReportBtn = document.getElementById('monthly-report-btn');
+        const reportPeriod = document.getElementById('report-period');
+        const totalEmergenciesEl = document.getElementById('total-emergencies');
+        const medicalEmergenciesEl = document.getElementById('medical-emergencies');
+        const fireEmergenciesEl = document.getElementById('fire-emergencies');
+        const policeEmergenciesEl = document.getElementById('police-emergencies');
+        const reportTableBody = document.getElementById('report-table-body');
+
         // Show login modal on page load
         document.addEventListener('DOMContentLoaded', function () {
+            checkSession();
             initMap();
             setupCallButtons();
             setupFormNavigation();
             setupImageUpload();
             setupModalEvents();
             setupAlertSystem();
+            setupAnalytics();
         });
+
+        // Session management functions
+        function checkSession() {
+            const sessionData = localStorage.getItem('emergencyResponseSession');
+            if (sessionData) {
+                const session = JSON.parse(sessionData);
+                const now = new Date().getTime();
+
+                if (now - session.timestamp < SESSION_DURATION) {
+                    // Session is valid, restore user
+                    currentUser = session.user;
+                    userDisplay.textContent = currentUser.name;
+                    loginModal.classList.add('hidden');
+                    logoutBtn.classList.remove('hidden');
+
+                    if (currentUser.type === 'reporter') {
+                        reporterView.classList.remove('hidden');
+                        contactInfoSection.classList.remove('hidden');
+                    } else if (currentUser.type === 'responder') {
+                        responderView.classList.remove('hidden');
+                        // Load emergencies and set up auto-refresh
+                        loadEmergencies();
+                        if (emergencyRefreshInterval) {
+                            clearInterval(emergencyRefreshInterval);
+                        }
+                        emergencyRefreshInterval = setInterval(loadEmergencies, 5000);
+                        initAnalytics();
+                    }
+                } else {
+                    // Session expired
+                    localStorage.removeItem('emergencyResponseSession');
+                }
+            }
+        }
+
+        function saveSession() {
+            if (currentUser) {
+                const session = {
+                    user: currentUser,
+                    timestamp: new Date().getTime()
+                };
+                localStorage.setItem('emergencyResponseSession', JSON.stringify(session));
+            }
+        }
+
+        function clearSession() {
+            localStorage.removeItem('emergencyResponseSession');
+        }
+
+        // Setup analytics
+        function setupAnalytics() {
+            // Set up report type buttons
+            dailyReportBtn.addEventListener('click', function () {
+                currentReportType = 'daily';
+                updateReportButtons();
+                loadAnalyticsData();
+            });
+
+            monthlyReportBtn.addEventListener('click', function () {
+                currentReportType = 'monthly';
+                updateReportButtons();
+                loadAnalyticsData();
+            });
+        }
+
+        function initAnalytics() {
+            loadAnalyticsData();
+        }
+
+        // Update report button styles
+        function updateReportButtons() {
+            if (currentReportType === 'daily') {
+                dailyReportBtn.classList.add('bg-blue-600', 'text-white');
+                dailyReportBtn.classList.remove('bg-gray-200', 'text-gray-700');
+                monthlyReportBtn.classList.add('bg-gray-200', 'text-gray-700');
+                monthlyReportBtn.classList.remove('bg-blue-600', 'text-white');
+                reportPeriod.textContent = 'Showing data for: Today';
+            } else {
+                monthlyReportBtn.classList.add('bg-blue-600', 'text-white');
+                monthlyReportBtn.classList.remove('bg-gray-200', 'text-gray-700');
+                dailyReportBtn.classList.add('bg-gray-200', 'text-gray-700');
+                dailyReportBtn.classList.remove('bg-blue-600', 'text-white');
+                reportPeriod.textContent = 'Showing data for: This Month';
+            }
+        }
+
+        // Load and process analytics data
+        function loadAnalyticsData() {
+            // Filter emergencies based on report type
+            const now = new Date();
+            let filteredEmergencies = [];
+
+            if (currentReportType === 'daily') {
+                // Get emergencies from today
+                filteredEmergencies = emergencyDB.emergencies.filter(emergency => {
+                    const emergencyDate = new Date(emergency.timestamp);
+                    return emergencyDate.toDateString() === now.toDateString();
+                });
+            } else {
+                // Get emergencies from this month
+                filteredEmergencies = emergencyDB.emergencies.filter(emergency => {
+                    const emergencyDate = new Date(emergency.timestamp);
+                    return emergencyDate.getMonth() === now.getMonth() &&
+                        emergencyDate.getFullYear() === now.getFullYear();
+                });
+            }
+
+            // Update summary statistics
+            updateSummaryStats(filteredEmergencies);
+
+            // Update map visualization
+            updateAnalyticsMap(filteredEmergencies);
+
+            // Update charts
+            updateTypeChart(filteredEmergencies);
+            updateTimeChart(filteredEmergencies);
+
+            // Update report table
+            updateReportTable(filteredEmergencies);
+        }
+
+        // Update summary statistics
+        function updateSummaryStats(emergencies) {
+            totalEmergenciesEl.textContent = emergencies.length;
+
+            const medicalCount = emergencies.filter(e => e.type === 'medical').length;
+            const fireCount = emergencies.filter(e => e.type === 'fire').length;
+            const policeCount = emergencies.filter(e => e.type === 'police').length;
+            const otherCount = emergencies.filter(e => e.type === 'general').length;
+
+            medicalEmergenciesEl.textContent = medicalCount;
+            fireEmergenciesEl.textContent = fireCount;
+            policeEmergenciesEl.textContent = policeCount;
+        }
+
+        // Update analytics map with emergency hotspots
+        function updateAnalyticsMap(emergencies) {
+            const mapContainer = document.getElementById('analytics-map');
+
+            // Clear previous map if it exists
+            if (analyticsMap) {
+                analyticsMap.remove();
+            }
+
+            // Create new map centered on Lusaka
+            analyticsMap = L.map('analytics-map').setView([-15.3875, 28.3228], 12);
+
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: '© OpenStreetMap contributors'
+            }).addTo(analyticsMap);
+
+            // Create a heatmap layer (using circles as a simple approximation)
+            emergencies.forEach(emergency => {
+                let color;
+                switch (emergency.type) {
+                    case 'medical': color = 'red'; break;
+                    case 'fire': color = 'orange'; break;
+                    case 'police': color = 'blue'; break;
+                    default: color = 'gray';
+                }
+
+                L.circle([emergency.location.lat, emergency.location.lng], {
+                    color: color,
+                    fillColor: color,
+                    fillOpacity: 0.5,
+                    radius: 300
+                }).addTo(analyticsMap).bindPopup(`
+                    <strong>${emergency.type.toUpperCase()} Emergency</strong><br>
+                    ${emergency.address}<br>
+                    ${formatTime(emergency.timestamp)}
+                `);
+            });
+
+            // Add rescue centers to the map
+            emergencyDB.rescueCenters.forEach(center => {
+                let iconColor;
+                switch (center.type) {
+                    case 'hospital': iconColor = 'red'; break;
+                    case 'police': iconColor = 'blue'; break;
+                    case 'fire': iconColor = 'orange'; break;
+                    default: iconColor = 'gray';
+                }
+
+                const icon = L.divIcon({
+                    className: 'custom-icon',
+                    html: `<div style="background-color: ${iconColor}; width: 16px; height: 16px; border-radius: 50%; border: 2px solid white; box-shadow: 0 0 10px rgba(0,0,0,0.5);"></div>`,
+                    iconSize: [16, 16],
+                    iconAnchor: [8, 8]
+                });
+
+                L.marker([center.location.lat, center.location.lng], { icon: icon })
+                    .addTo(analyticsMap)
+                    .bindPopup(`
+                        <strong>${center.name}</strong><br>
+                        ${center.address}<br>
+                        Phone: ${center.phone}
+                    `);
+            });
+        }
+
+        // Update emergency type distribution chart
+        function updateTypeChart(emergencies) {
+            const ctx = document.getElementById('type-chart').getContext('2d');
+
+            // Count emergencies by type
+            const typeCounts = {
+                medical: emergencies.filter(e => e.type === 'medical').length,
+                fire: emergencies.filter(e => e.type === 'fire').length,
+                police: emergencies.filter(e => e.type === 'police').length,
+                general: emergencies.filter(e => e.type === 'general').length
+            };
+
+            // Destroy previous chart if it exists
+            if (typeChart) {
+                typeChart.destroy();
+            }
+
+            // Create new chart
+            typeChart = new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Medical', 'Fire', 'Police', 'Other'],
+                    datasets: [{
+                        data: [typeCounts.medical, typeCounts.fire, typeCounts.police, typeCounts.general],
+                        backgroundColor: [
+                            '#ef4444', // red
+                            '#f97316', // orange
+                            '#3b82f6', // blue
+                            '#94a3b8'  // gray
+                        ]
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: {
+                            position: 'bottom'
+                        }
+                    }
+                }
+            });
+        }
+
+        // Update time pattern chart
+        function updateTimeChart(emergencies) {
+            const ctx = document.getElementById('time-chart').getContext('2d');
+
+            // Group emergencies by hour
+            const hours = Array.from({ length: 24 }, (_, i) => i);
+            const hourlyCounts = hours.map(hour => {
+                return emergencies.filter(emergency => {
+                    const emergencyHour = new Date(emergency.timestamp).getHours();
+                    return emergencyHour === hour;
+                }).length;
+            });
+
+            // Destroy previous chart if it exists
+            if (timeChart) {
+                timeChart.destroy();
+            }
+
+            // Create new chart
+            timeChart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: hours.map(h => `${h}:00`),
+                    datasets: [{
+                        label: 'Emergencies by Hour',
+                        data: hourlyCounts,
+                        backgroundColor: '#3b82f6'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            title: {
+                                display: true,
+                                text: 'Number of Emergencies'
+                            }
+                        },
+                        x: {
+                            title: {
+                                display: true,
+                                text: 'Hour of Day'
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        // Update detailed report table
+        function updateReportTable(emergencies) {
+            reportTableBody.innerHTML = '';
+
+            // Sort emergencies by timestamp (newest first)
+            const sortedEmergencies = [...emergencies].sort((a, b) => {
+                return new Date(b.timestamp) - new Date(a.timestamp);
+            });
+
+            // Add rows to table
+            sortedEmergencies.forEach(emergency => {
+                const row = document.createElement('tr');
+
+                // Format time
+                const emergencyTime = new Date(emergency.timestamp);
+                const timeString = emergencyTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+
+                // Format type with icon
+                let typeIcon = '';
+                switch (emergency.type) {
+                    case 'medical': typeIcon = '🏥'; break;
+                    case 'fire': typeIcon = '🔥'; break;
+                    case 'police': typeIcon = '👮'; break;
+                    default: typeIcon = '⚠️';
+                }
+
+                row.innerHTML = `
+                    <td class="py-2 px-4">${timeString}</td>
+                    <td class="py-2 px-4">${typeIcon} ${emergency.type.charAt(0).toUpperCase() + emergency.type.slice(1)}</td>
+                    <td class="py-2 px-4">${emergency.address}</td>
+                    <td class="py-2 px-4">
+                        <span class="priority-badge ${getSeverityClass(emergency.severity)}">
+                            ${emergency.severity}
+                        </span>
+                    </td>
+                `;
+
+                reportTableBody.appendChild(row);
+            });
+
+            // If no emergencies, show message
+            if (sortedEmergencies.length === 0) {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td colspan="4" class="py-4 px-4 text-center text-gray-500">
+                        No emergencies found for this period
+                    </td>
+                `;
+                reportTableBody.appendChild(row);
+            }
+        }
+
+        // Helper function to get severity CSS class
+        function getSeverityClass(severity) {
+            if (severity.includes('Critical')) return 'bg-red-100 text-red-800';
+            if (severity.includes('Serious')) return 'bg-yellow-100 text-yellow-800';
+            if (severity.includes('Moderate')) return 'bg-blue-100 text-blue-800';
+            return 'bg-gray-100 text-gray-800';
+        }
 
         // Setup alert notification system
         function setupAlertSystem() {
@@ -1868,20 +2242,32 @@
             // Play alert sound if enabled
             if (alertSoundEnabled) {
                 playAlertSound();
+                // Continue playing sound every 10 seconds for 5 minutes
+                alertInterval = setInterval(() => {
+                    if (alertSoundEnabled && alertNotification.classList.contains('show')) {
+                        playAlertSound();
+                    }
+                }, 10000);
             }
 
-            // Auto-hide after 10 seconds if not interacted with
+            // Auto-hide after 5 minutes if not interacted with
             setTimeout(() => {
                 if (alertNotification.classList.contains('show')) {
                     hideAlert();
                 }
-            }, 10000);
+            }, alertDuration);
         }
 
         // Hide the current alert and show next if available
         function hideAlert() {
             alertNotification.classList.remove('show', 'pulse');
             currentAlert = null;
+
+            // Clear the alert interval
+            if (alertInterval) {
+                clearInterval(alertInterval);
+                alertInterval = null;
+            }
 
             // Show next alert if available
             if (pendingAlerts.length > 0) {
@@ -2075,6 +2461,8 @@
 
                 // Refresh emergencies list
                 loadEmergencies();
+                // Refresh analytics
+                loadAnalyticsData();
             });
         }
 
@@ -2294,6 +2682,9 @@
             logoutBtn.classList.remove('hidden');
             contactInfoSection.classList.remove('hidden');
 
+            // Save session
+            saveSession();
+
             // Clear any existing refresh interval
             if (emergencyRefreshInterval) {
                 clearInterval(emergencyRefreshInterval);
@@ -2333,12 +2724,18 @@
                 responderView.classList.remove('hidden');
                 logoutBtn.classList.remove('hidden');
 
+                // Save session
+                saveSession();
+
                 // Load emergencies and set up auto-refresh
                 loadEmergencies();
                 if (emergencyRefreshInterval) {
                     clearInterval(emergencyRefreshInterval);
                 }
                 emergencyRefreshInterval = setInterval(loadEmergencies, 5000); // Refresh every 5 seconds
+
+                // Initialize analytics
+                initAnalytics();
 
                 showNotification('Logged in as responder', 'success');
             } else {
@@ -2359,6 +2756,9 @@
             logoutBtn.classList.remove('hidden');
             contactInfoSection.classList.add('hidden');
 
+            // Save session
+            saveSession();
+
             // Clear any existing refresh interval
             if (emergencyRefreshInterval) {
                 clearInterval(emergencyRefreshInterval);
@@ -2376,6 +2776,9 @@
             responderView.classList.add('hidden');
             loginModal.classList.remove('hidden');
             logoutBtn.classList.add('hidden');
+
+            // Clear session
+            clearSession();
 
             // Clear refresh interval
             if (emergencyRefreshInterval) {
@@ -2439,6 +2842,11 @@
             emergencyDB.emergencies.push(emergency);
 
             showNotification('Emergency reported successfully! Help is on the way.', 'success');
+
+            // Refresh analytics if responder is logged in
+            if (currentUser && currentUser.type === 'responder') {
+                loadAnalyticsData();
+            }
 
             // Reset form
             setTimeout(() => {
@@ -2907,11 +3315,16 @@
                 showNotification(`You are now responding to emergency #${emergencyId}`, 'success');
                 loadEmergencies();
 
+                // Refresh analytics
+                loadAnalyticsData();
+
                 // Simulate response process
                 setTimeout(() => {
                     emergencyDB.emergencies[emergencyIndex].status = 'resolved';
                     showNotification(`Emergency #${emergencyId} has been resolved', 'info`);
                     loadEmergencies();
+                    // Refresh analytics after resolution
+                    loadAnalyticsData();
                 }, 10000);
             }
         }
