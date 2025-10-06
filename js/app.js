@@ -389,6 +389,7 @@ function checkSession() {
         if (now - session.timestamp < SESSION_DURATION) {
             // Session is valid, restore user
             currentUser = session.user;
+            try { window.currentUser = currentUser; } catch (e) {}
             userDisplay.textContent = currentUser.name;
             loginModal.classList.add('hidden');
             logoutBtn.classList.remove('hidden');
@@ -796,6 +797,12 @@ function setupAlertSystem() {
                         emergencyItem.style.backgroundColor = '';
                     }, 3000);
                 }, 100);
+            } else {
+                // If not found in the list (e.g., different tab or id mismatch), open map directly
+                try {
+                    showEmergencyMap(currentAlert);
+                    mapModal.classList.remove('hidden');
+                } catch (e) {}
             }
 
             // Open the map modal focused on this emergency
@@ -1194,7 +1201,7 @@ function setupSummaryFilters() {
             document.querySelectorAll('.summary-card').forEach(c => c.classList.remove('active'));
             this.classList.add('active');
             responderListFilter = this.getAttribute('data-filter');
-            loadEmergencies();
+            try { loadEmergencies(); } catch (e) {}
         });
     });
 }
@@ -1497,6 +1504,7 @@ document.getElementById('reporter-login-btn').addEventListener('click', function
         phone: phone,
         name: 'Reporter'
     };
+    try { window.currentUser = currentUser; } catch (e) {}
 
     userDisplay.textContent = 'Reporter';
     loginModal.classList.add('hidden');
@@ -1556,6 +1564,7 @@ document.getElementById('responder-login-btn').addEventListener('click', async f
             organization: user.organization,
             name: user.name || email.split('@')[0]
         };
+        try { window.currentUser = currentUser; } catch (e) {}
 
         userDisplay.textContent = currentUser.name;
         loginModal.classList.add('hidden');
@@ -1594,6 +1603,7 @@ document.getElementById('guest-login-btn').addEventListener('click', function ()
         type: 'guest',
         name: 'Guest User'
     };
+    try { window.currentUser = currentUser; } catch (e) {}
 
     userDisplay.textContent = 'Guest';
     loginModal.classList.add('hidden');
@@ -1627,6 +1637,7 @@ logoutBtn.addEventListener('click', async function () {
         console.warn('Logout warning:', e);
     }
     currentUser = null;
+    try { window.currentUser = null; } catch (e) {}
     userDisplay.textContent = 'Guest';
     reporterView.classList.add('hidden');
     responderView.classList.add('hidden');
@@ -1919,7 +1930,7 @@ function initMap() {
 function ensureMapSize() {
     try {
         if (map) map.invalidateSize();
-    } catch (e) {}
+        } catch (e) {}
 }
 
 // Load rescue centers with proximity calculation
@@ -2087,9 +2098,13 @@ function displayRecommendedCenter(center) {
 function loadEmergencies() {
     emergenciesList.innerHTML = '';
 
-    const activeEmergencies = appState.emergencies.filter(e => e.status === 'reported' || e.status === 'dispatched');
-    const respondedEmergencies = appState.emergencies.filter(e => e.status === 'responded');
-    const resolvedEmergencies = appState.emergencies.filter(e => e.status === 'resolved');
+    const norm = (s) => String(s || '').toLowerCase().trim();
+    const activeEmergencies = appState.emergencies.filter(e => {
+        const s = norm(e.status);
+        return s === 'reported' || s === 'dispatched';
+    });
+    const respondedEmergencies = appState.emergencies.filter(e => norm(e.status) === 'responded');
+    const resolvedEmergencies = appState.emergencies.filter(e => norm(e.status) === 'resolved');
 
     activeEmergenciesEl.textContent = activeEmergencies.length;
     respondedEmergenciesEl.textContent = respondedEmergencies.length;
@@ -2193,9 +2208,9 @@ function loadEmergencies() {
                         </button>
                     ` : ''}
                     ${emergency.status !== 'resolved' ? `
-                        <button class="bg-blue-600 hover:bg-blue-700 text-white p-2 rounded-lg respond-btn" data-id="${emergency.id}">
-                            <i class="fas fa-first-aid"></i>
-                        </button>
+                    <button class="bg-blue-600 hover:bg-blue-700 text-white p-2 rounded-lg respond-btn" data-id="${emergency.id}">
+                        <i class="fas fa-first-aid"></i>
+                    </button>
                     ` : ''}
                 </div>
             </div>

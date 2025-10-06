@@ -3,6 +3,8 @@
 const DataSyncController = (function () {
   let unsubEmergencies = null;
   let unsubRescueCenters = null;
+  let knownEmergencyIds = new Set();
+  let hasInitialSync = false;
 
   function mapEmergencyDoc(doc) {
     const data = doc.data();
@@ -72,6 +74,23 @@ const DataSyncController = (function () {
     if (typeof window.loadAnalyticsData === 'function') {
       try { window.loadAnalyticsData(); } catch (e) {}
     }
+    // Real-time alert: based on Firestore docChanges to avoid missing events
+    try {
+      const isResponder = window.currentUser && window.currentUser.type === 'responder';
+      if (isResponder && typeof window.showAlert === 'function') {
+        const changes = snapshot.docChanges();
+        changes.forEach(change => {
+          if (change.type !== 'added') return;
+          const e = mapEmergencyDoc(change.doc);
+          const status = String(e.status || '').toLowerCase();
+          if (status === 'reported') {
+            try { window.showAlert(e); } catch (_) {}
+          }
+        });
+      }
+      knownEmergencyIds = new Set(emergencies.map(e => String(e.id)));
+      hasInitialSync = true;
+    } catch (_) {}
   }
 
   function syncRescueCenters(snapshot) {

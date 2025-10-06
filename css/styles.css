@@ -567,6 +567,7 @@ body {
     transition: transform 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
     border-left: 6px solid #ffcc00;
     overflow: hidden;
+    pointer-events: auto; /* ensure clicks pass to buttons */
 }
 
 .alert-notification.show {
@@ -661,6 +662,7 @@ body {
     cursor: pointer;
     transition: all 0.2s;
     text-align: center;
+    pointer-events: auto;
 }
 
 .alert-btn-primary {
