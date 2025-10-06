@@ -147,7 +147,7 @@ function updateEmergencyStatus(emergencyId, status, responder = null) {
 // Handle new emergency from server
 function handleNewEmergency(emergency) {
     // Add to local database
-    emergencyDB.emergencies.push(emergency);
+    appState.emergencies.push(emergency);
 
     // If user is a responder, update the UI
     if (currentUser && currentUser.type === 'responder') {
@@ -167,9 +167,9 @@ function handleNewEmergency(emergency) {
 
 // Update existing emergency
 function updateEmergency(emergency) {
-    const index = emergencyDB.emergencies.findIndex(e => e.id === emergency.id);
+    const index = appState.emergencies.findIndex(e => e.id === emergency.id);
     if (index !== -1) {
-        emergencyDB.emergencies[index] = emergency;
+        appState.emergencies[index] = emergency;
 
         // If user is a responder, update the UI
         if (currentUser && currentUser.type === 'responder') {
@@ -183,9 +183,9 @@ function updateEmergency(emergency) {
 
 // Resolve emergency
 function resolveEmergency(emergencyId) {
-    const index = emergencyDB.emergencies.findIndex(e => e.id === emergencyId);
+    const index = appState.emergencies.findIndex(e => e.id === emergencyId);
     if (index !== -1) {
-        emergencyDB.emergencies[index].status = 'resolved';
+        appState.emergencies[index].status = 'resolved';
 
         // If user is a responder, update the UI
         if (currentUser && currentUser.type === 'responder') {
@@ -197,7 +197,7 @@ function resolveEmergency(emergencyId) {
 
         // Show notification if it's the reporter's emergency
         if (currentUser && (currentUser.type === 'reporter' || currentUser.type === 'guest') &&
-            emergencyDB.emergencies[index].reporter.name === currentUser.name) {
+            appState.emergencies[index].reporter.name === currentUser.name) {
             showNotification('Your emergency has been resolved!', 'success');
         }
     }
@@ -205,7 +205,7 @@ function resolveEmergency(emergencyId) {
 
 // Update emergencies list for responders
 function updateEmergenciesList(emergencies) {
-    emergencyDB.emergencies = emergencies;
+    appState.emergencies = emergencies;
     loadEmergencies();
     loadAnalyticsData();
 }
@@ -252,115 +252,7 @@ function updateConnectionStatus(connected) {
     }
 }
 
-// Data storage (simulating a database)
-const emergencyDB = {
-    emergencies: [],
-    responders: [
-        {
-            id: 1,
-            email: "responder@uth.gov.zm",
-            password: "password123",
-            organization: "hospital",
-            name: "Dr. David Chanda",
-            badgeId: "UTH-1234",
-            isAvailable: true
-        },
-        {
-            id: 2,
-            email: "officer@police.gov.zm",
-            password: "password123",
-            organization: "police",
-            name: "Officer James Banda",
-            badgeId: "LCP-5678",
-            isAvailable: true
-        },
-        {
-            id: 3,
-            email: "firefighter@lusfire.gov.zm",
-            password: "fire123",
-            organization: "fire",
-            name: "Captain Sarah Mwale",
-            badgeId: "LFF-4567",
-            isAvailable: true
-        },
-        {
-            id: 4,
-            email: "guard@security.gov.zm",
-            password: "secure456",
-            organization: "security",
-            name: "Security Chief John Phiri",
-            badgeId: "GS-8965",
-            isAvailable: true
-        }
-    ],
-    rescueCenters: [
-        {
-            id: 1,
-            name: "University Teaching Hospital",
-            type: "hospital",
-            location: { lat: -15.3955, lng: 28.3200 },
-            address: "Nationalist Road, Lusaka, Zambia",
-            phone: "+260211256067",
-            resources: {
-                bedsAvailable: 12,
-                doctorsOnDuty: 4
-            },
-            emergencyTypes: ["medical", "general"]
-        },
-        {
-            id: 2,
-            name: "Lusaka Central Police Station",
-            type: "police",
-            location: { lat: -15.4167, lng: 28.2833 },
-            address: "Cairo Road, Lusaka, Zambia",
-            phone: "+260211228794",
-            resources: {
-                officersAvailable: 8,
-                vehiclesAvailable: 3
-            },
-            emergencyTypes: ["police", "general"]
-        },
-        {
-            id: 3,
-            name: "Lusaka Fire Station",
-            type: "fire",
-            location: { lat: -15.4100, lng: 28.2900 },
-            address: "Kabulonga Road, Lusaka, Zambia",
-            phone: "+260211228844",
-            resources: {
-                trucksAvailable: 2,
-                firefightersOnDuty: 6
-            },
-            emergencyTypes: ["fire", "general"]
-        },
-        {
-            id: 4,
-            name: "Levy Mwanawasa Hospital",
-            type: "hospital",
-            location: { lat: -15.3775, lng: 28.3100 },
-            address: "Great East Road, Lusaka, Zambia",
-            phone: "+260211253077",
-            resources: {
-                bedsAvailable: 8,
-                doctorsOnDuty: 3
-            },
-            emergencyTypes: ["medical", "general"]
-        },
-        {
-            id: 5,
-            name: "Woodlands Police Station",
-            type: "police",
-            location: { lat: -15.4000, lng: 28.3000 },
-            address: "Woodlands Road, Lusaka, Zambia",
-            phone: "+260211254321",
-            resources: {
-                officersAvailable: 5,
-                vehiclesAvailable: 2
-            },
-            emergencyTypes: ["police", "general"]
-        }
-    ]
-};
+
 
 // Current user state
 let currentUser = null;
@@ -393,6 +285,18 @@ let currentReportType = 'daily';
 
 // Session management
 const SESSION_DURATION = 10 * 60 * 1000; // 10 minutes
+
+// Initialize in-memory store used by UI; kept in sync by DataSyncController
+if (!window.appState) {
+    window.appState = {
+        emergencies: [],
+        rescueCenters: [],
+        responders: []
+    };
+}
+if (typeof appState === 'undefined') {
+    var appState = window.appState;
+}
 
 // DOM Elements
 const loginModal = document.getElementById('login-modal');
@@ -558,13 +462,13 @@ function loadAnalyticsData() {
 
     if (currentReportType === 'daily') {
         // Get emergencies from today
-        filteredEmergencies = emergencyDB.emergencies.filter(emergency => {
+                filteredEmergencies = appState.emergencies.filter(emergency => {
             const emergencyDate = new Date(emergency.timestamp);
             return emergencyDate.toDateString() === now.toDateString();
         });
     } else {
         // Get emergencies from this month
-        filteredEmergencies = emergencyDB.emergencies.filter(emergency => {
+                filteredEmergencies = appState.emergencies.filter(emergency => {
             const emergencyDate = new Date(emergency.timestamp);
             return emergencyDate.getMonth() === now.getMonth() &&
                 emergencyDate.getFullYear() === now.getFullYear();
@@ -638,7 +542,7 @@ function updateAnalyticsMap(emergencies) {
     });
 
     // Add rescue centers to the map
-    emergencyDB.rescueCenters.forEach(center => {
+    appState.rescueCenters.forEach(center => {
         let iconColor;
         switch (center.type) {
             case 'hospital': iconColor = 'red'; break;
@@ -654,7 +558,10 @@ function updateAnalyticsMap(emergencies) {
             iconAnchor: [8, 8]
         });
 
-        L.marker([center.location.lat, center.location.lng], { icon: icon })
+        const latA = center.location.latitude ?? center.location.lat;
+        const lngA = center.location.longitude ?? center.location.lng;
+        if (typeof latA !== 'number' || typeof lngA !== 'number') return;
+        L.marker([latA, lngA], { icon: icon })
             .addTo(analyticsMap)
             .bindPopup(`
                 <strong>${center.name}</strong><br>
@@ -867,13 +774,13 @@ function checkForNewEmergencies() {
     const latestSeenId = localStorage.getItem('latestSeenEmergencyId') || 0;
 
     // Find new emergencies (those with ID greater than latest seen)
-    const newEmergencies = emergencyDB.emergencies.filter(
+    const newEmergencies = appState.emergencies.filter(
         emergency => emergency.id > latestSeenId && emergency.status === 'reported'
     );
 
     // Update the latest seen ID
-    if (emergencyDB.emergencies.length > 0) {
-        const maxId = Math.max(...emergencyDB.emergencies.map(e => e.id));
+    if (appState.emergencies.length > 0) {
+        const maxId = Math.max(...appState.emergencies.map(e => e.id));
         localStorage.setItem('latestSeenEmergencyId', maxId);
     }
 
@@ -1091,7 +998,7 @@ function setupModalEvents() {
         }
 
         const emergencyId = parseInt(selectedEmergency.getAttribute('data-id'));
-        const emergency = emergencyDB.emergencies.find(e => e.id === emergencyId);
+        const emergency = appState.emergencies.find(e => e.id === emergencyId);
 
         if (emergency) {
             showEmergencyMap(emergency);
@@ -1109,7 +1016,7 @@ function setupModalEvents() {
         }
 
         const emergencyId = parseInt(selectedEmergency.getAttribute('data-id'));
-        selectedEmergencyForDispatch = emergencyDB.emergencies.find(e => e.id === emergencyId);
+        selectedEmergencyForDispatch = appState.emergencies.find(e => e.id === emergencyId);
 
         if (selectedEmergencyForDispatch) {
             dispatchModal.classList.remove('hidden');
@@ -1171,7 +1078,7 @@ function showEmergencyMap(emergency) {
         .openPopup();
 
     // Add nearby rescue centers to the map
-    emergencyDB.rescueCenters.forEach(center => {
+    appState.rescueCenters.forEach(center => {
         let iconColor;
         switch (center.type) {
             case 'hospital': iconColor = 'red'; break;
@@ -1187,7 +1094,10 @@ function showEmergencyMap(emergency) {
             iconAnchor: [8, 8]
         });
 
-        L.marker([center.location.lat, center.location.lng], { icon: icon })
+        const latB = center.location.latitude ?? center.location.lat;
+        const lngB = center.location.longitude ?? center.location.lng;
+        if (typeof latB !== 'number' || typeof lngB !== 'number') return;
+        L.marker([latB, lngB], { icon: icon })
             .addTo(emergencyMap)
             .bindPopup(`
                 <strong>${center.name}</strong><br>
@@ -1565,11 +1475,11 @@ document.getElementById('submit-emergency').addEventListener('click', async func
             });
         } else {
             // Fallback to local in-memory for offline
-            emergencyDB.emergencies.push(emergency);
+            appState.emergencies.push(emergency);
         }
     } catch (e) {
         console.error('Failed to save emergency:', e);
-        emergencyDB.emergencies.push(emergency);
+        appState.emergencies.push(emergency);
     }
 
     showNotification('Emergency reported successfully! Help is on the way.', 'success');
@@ -1625,6 +1535,8 @@ function initMap() {
     }
 
     map = L.map('map').setView([-15.3875, 28.3228], 13);
+    // expose main map for controllers
+    window._mainMap = map;
 
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
         attribution: '© OpenStreetMap contributors'
@@ -1713,7 +1625,7 @@ function initMap() {
     }
 
     // Add markers for nearby rescue centers
-    emergencyDB.rescueCenters.forEach(center => {
+    appState.rescueCenters.forEach(center => {
         let iconColor;
         switch (center.type) {
             case 'hospital': iconColor = 'red'; break;
@@ -1729,10 +1641,20 @@ function initMap() {
             iconAnchor: [8, 8]
         });
 
-        L.marker([center.location.lat, center.location.lng], { icon: icon })
+        const latC = center.location.latitude ?? center.location.lat;
+        const lngC = center.location.longitude ?? center.location.lng;
+        if (typeof latC !== 'number' || typeof lngC !== 'number') return;
+        L.marker([latC, lngC], { icon: icon })
             .addTo(map)
             .bindPopup(center.name);
     });
+
+        // After map is ready, ensure Firebase rescue centers render live
+        try {
+            if (window.DataSyncController && typeof window.DataSyncController.refreshCentersOnMap === 'function') {
+                window.DataSyncController.refreshCentersOnMap();
+            }
+        } catch (e) {}
 }
 
 // Load rescue centers with proximity calculation
@@ -1747,35 +1669,41 @@ function loadRescueCenters() {
     }
 
     // Calculate distances and filter by emergency type if selected
-    const centersWithDistances = emergencyDB.rescueCenters
+    const centersWithDistances = appState.rescueCenters
         .map(center => {
-            const distance = calculateDistance(
-                userLocation.lat, userLocation.lng,
-                center.location.lat, center.location.lng
-            );
+            const cLat = center.location.latitude ?? center.location.lat;
+            const cLng = center.location.longitude ?? center.location.lng;
+            const distance = (typeof cLat === 'number' && typeof cLng === 'number')
+                ? calculateDistance(userLocation.lat, userLocation.lng, cLat, cLng)
+                : Number.POSITIVE_INFINITY;
 
             return {
                 ...center,
                 distance: distance,
-                isRelevant: !currentEmergencyType || center.emergencyTypes.includes(currentEmergencyType)
+                isRelevant: !currentEmergencyType || Array.isArray(center.emergencyTypes) && center.emergencyTypes.includes(currentEmergencyType)
             };
         })
         .sort((a, b) => a.distance - b.distance);
 
     // Find the recommended center (closest relevant center)
-    const relevantCenters = centersWithDistances.filter(center => center.isRelevant);
+    const relevantCenters = centersWithDistances.filter(center => center.isRelevant && isFinite(center.distance));
     if (relevantCenters.length > 0) {
         recommendedCenter = relevantCenters[0];
         displayRecommendedCenter(recommendedCenter);
     }
 
-    // Display all centers
+    // Display only nearest centers (limit for step 4)
     if (centersWithDistances.length === 0) {
         rescueCentersList.innerHTML = '<div class="text-center py-4 text-gray-500">No rescue centers found in your area.</div>';
         return;
     }
 
-    centersWithDistances.forEach(center => {
+    const MAX_NEARBY_CENTERS = 5;
+    const listToShow = (relevantCenters.length > 0 ? relevantCenters : centersWithDistances)
+        .filter(c => isFinite(c.distance))
+        .slice(0, MAX_NEARBY_CENTERS);
+
+    listToShow.forEach(center => {
         const card = document.createElement('div');
         card.className = 'rescue-center-card';
 
@@ -1894,9 +1822,9 @@ function displayRecommendedCenter(center) {
 function loadEmergencies() {
     emergenciesList.innerHTML = '';
 
-    const activeEmergencies = emergencyDB.emergencies.filter(e => e.status === 'reported' || e.status === 'dispatched');
-    const respondedEmergencies = emergencyDB.emergencies.filter(e => e.status === 'responded');
-    const resolvedEmergencies = emergencyDB.emergencies.filter(e => e.status === 'resolved');
+    const activeEmergencies = appState.emergencies.filter(e => e.status === 'reported' || e.status === 'dispatched');
+    const respondedEmergencies = appState.emergencies.filter(e => e.status === 'responded');
+    const resolvedEmergencies = appState.emergencies.filter(e => e.status === 'resolved');
 
     activeEmergenciesEl.textContent = activeEmergencies.length;
     respondedEmergenciesEl.textContent = respondedEmergencies.length;
@@ -2049,10 +1977,10 @@ function openImageModal(imageSrc) {
 
 // Respond to emergency
 function respondToEmergency(emergencyId) {
-    const emergencyIndex = emergencyDB.emergencies.findIndex(e => e.id === emergencyId);
+    const emergencyIndex = appState.emergencies.findIndex(e => e.id === emergencyId);
     if (emergencyIndex !== -1) {
-        emergencyDB.emergencies[emergencyIndex].status = 'responded';
-        emergencyDB.emergencies[emergencyIndex].responder = currentUser.name;
+        appState.emergencies[emergencyIndex].status = 'responded';
+        appState.emergencies[emergencyIndex].responder = currentUser.name;
 
         // Send update to server
         updateEmergencyStatus(emergencyId, 'responded', currentUser.name);
@@ -2065,7 +1993,7 @@ function respondToEmergency(emergencyId) {
 
         // Simulate response process
         setTimeout(() => {
-            emergencyDB.emergencies[emergencyIndex].status = 'resolved';
+            appState.emergencies[emergencyIndex].status = 'resolved';
 
             // Send update to server
             updateEmergencyStatus(emergencyId, 'resolved', currentUser.name);

@@ -58,8 +58,8 @@ const DataSyncController = (function () {
 
   function syncEmergencies(snapshot) {
     const emergencies = snapshot.docs.map(mapEmergencyDoc);
-    if (window.emergencyDB) {
-      window.emergencyDB.emergencies = emergencies;
+    if (window.appState) {
+      window.appState.emergencies = emergencies;
     }
     if (typeof window.loadEmergencies === 'function') {
       try { window.loadEmergencies(); } catch (e) {}
@@ -71,9 +71,10 @@ const DataSyncController = (function () {
 
   function syncRescueCenters(snapshot) {
     const centers = snapshot.docs.map(mapRescueCenterDoc);
-    if (window.emergencyDB) {
-      window.emergencyDB.rescueCenters = centers;
+    if (window.appState) {
+      window.appState.rescueCenters = centers;
     }
+    try { console.log('Rescue centers (from Firestore):', centers); } catch (e) {}
     // refresh map markers in real-time
     try {
       refreshRescueCentersMap();
@@ -81,10 +82,10 @@ const DataSyncController = (function () {
   }
 
   function refreshRescueCentersMap() {
-    if (!window.map || !window.emergencyDB) return;
+    if (!window._mainMap || !window.emergencyDB) return;
     // create or clear layer group for centers
     if (!window.rescueCentersLayer) {
-      window.rescueCentersLayer = L.layerGroup().addTo(window.map);
+      window.rescueCentersLayer = L.layerGroup().addTo(window._mainMap);
     } else {
       window.rescueCentersLayer.clearLayers();
     }
@@ -113,20 +114,38 @@ const DataSyncController = (function () {
 
   return {
     start() {
-      if (!window.isFirebaseReady || !window.isFirebaseReady()) return;
-      if (!window.emergencyDB) return;
+      if (!window.isFirebaseReady || !window.isFirebaseReady()) {
+        try { console.warn('DataSync: Firebase not ready'); } catch (e) {}
+        return;
+      }
+      if (!window.appState) {
+        try { console.warn('DataSync: appState not initialized'); } catch (e) {}
+        return;
+      }
 
       // initial seed
       window.EmergencyService.init();
 
       // subscribe
-      unsubEmergencies = window.EmergenciesRepository.onAll(syncEmergencies);
-      unsubRescueCenters = window.RescueCentersRepository.onAll(syncRescueCenters);
+      try {
+        unsubEmergencies = window.EmergenciesRepository.onAll(syncEmergencies);
+      } catch (e) {
+        try { console.error('DataSync: emergencies subscribe failed', e); } catch (_) {}
+      }
+      try {
+        unsubRescueCenters = window.RescueCentersRepository.onAll(syncRescueCenters);
+      } catch (e) {
+        try { console.error('DataSync: rescueCenters subscribe failed', e); } catch (_) {}
+      }
     },
 
     stop() {
       if (unsubEmergencies) { unsubEmergencies(); unsubEmergencies = null; }
       if (unsubRescueCenters) { unsubRescueCenters(); unsubRescueCenters = null; }
+    },
+
+    refreshCentersOnMap() {
+      try { refreshRescueCentersMap(); } catch (e) {}
     },
   };
 })();
