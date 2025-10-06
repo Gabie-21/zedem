@@ -195,6 +195,11 @@ function resolveEmergency(emergencyId) {
         // Update analytics
         loadAnalyticsData();
 
+        // Close any active alert related to this emergency
+        if (currentAlert && String(currentAlert.id) === String(emergencyId)) {
+            hideAlert();
+        }
+
         // Show notification if it's the reporter's emergency
         if (currentUser && (currentUser.type === 'reporter' || currentUser.type === 'guest') &&
             appState.emergencies[index].reporter.name === currentUser.name) {
@@ -329,6 +334,8 @@ const mapModal = document.getElementById('map-modal');
 const dispatchModal = document.getElementById('dispatch-modal');
 const confirmDispatchBtn = document.getElementById('confirm-dispatch');
 const emergencyMapContainer = document.getElementById('emergency-map');
+const resolveEmergencyBtn = document.getElementById('resolve-emergency-btn');
+const dismissEmergencyBtn = document.getElementById('dismiss-emergency-btn');
 
 // Alert notification elements
 const alertNotification = document.getElementById('alert-notification');
@@ -743,7 +750,33 @@ function getSeverityClass(severity) {
 function setupAlertSystem() {
     // Setup alert event listeners
     alertClose.addEventListener('click', hideAlert);
-    alertDismiss.addEventListener('click', hideAlert);
+    alertDismiss.addEventListener('click', async function () {
+        // Dismiss should also mark the current alert's emergency as resolved
+        if (currentAlert) {
+            try {
+                const emergencyId = currentAlert.id;
+                setGlobalLoading(true, 'Resolving emergency...');
+                if (window.isFirebaseReady && window.isFirebaseReady()) {
+                    await window.EmergencyService.updateEmergencyStatus(emergencyId, 'resolved', { resolutionMessage: 'Dismissed from alert' });
+                }
+                const idx = appState.emergencies.findIndex(e => String(e.id) === String(emergencyId));
+                if (idx !== -1) {
+                    appState.emergencies[idx].status = 'resolved';
+                    appState.emergencies[idx].resolutionMessage = 'Dismissed from alert';
+                }
+                loadEmergencies();
+                loadAnalyticsData();
+                showNotification('Emergency marked as resolved', 'success');
+            } catch (e) {
+                console.warn('Dismiss/resolve failed', e);
+            } finally {
+                setGlobalLoading(false);
+                hideAlert();
+            }
+        } else {
+            hideAlert();
+        }
+    });
     alertViewDetails.addEventListener('click', function () {
         if (currentAlert) {
             // Select the emergency in the list
@@ -1077,6 +1110,26 @@ function setupModalEvents() {
         // Refresh analytics
         loadAnalyticsData();
     });
+
+    // Dismiss button in map modal
+    if (dismissEmergencyBtn) {
+        dismissEmergencyBtn.addEventListener('click', function () {
+            mapModal.classList.add('hidden');
+        });
+    }
+
+    // Resolve button in map modal
+    if (resolveEmergencyBtn) {
+        resolveEmergencyBtn.addEventListener('click', function () {
+            const selected = document.querySelector('.emergency-item.selected');
+            if (!selected) {
+                showNotification('Please select an emergency first', 'error');
+                return;
+            }
+            const emergencyId = selected.getAttribute('data-id');
+            promptResolveMessage(emergencyId);
+        });
+    }
 }
 
 // Show emergency on map
@@ -1967,6 +2020,7 @@ function loadEmergencies() {
                         </span>
                         <span class="text-sm text-gray-500">${formatTime(emergency.timestamp)}</span>
                         ${emergency.timestamp > Date.now() - 60000 ? '<span class="real-time-badge">NEW</span>' : ''}
+                        ${emergency.status === 'resolved' ? '<span class="ml-2 resolved-badge">RESOLVED</span>' : ''}
                     </div>
                     <p class="text-sm mt-2"><i class="fas fa-map-marker-alt mr-1"></i> ${emergency.address} ${emergency.landmark ? `(${emergency.landmark})` : ''}</p>
                     <p class="text-sm mt-1"><i class="fas fa-user mr-1"></i> Reported by: ${emergency.reporter.name}</p>
@@ -1982,9 +2036,11 @@ function loadEmergencies() {
                             <i class="fas fa-phone"></i>
                         </button>
                     ` : ''}
-                    <button class="bg-blue-600 hover:bg-blue-700 text-white p-2 rounded-lg respond-btn" data-id="${emergency.id}">
-                        <i class="fas fa-first-aid"></i>
-                    </button>
+                    ${emergency.status !== 'resolved' ? `
+                        <button class="bg-blue-600 hover:bg-blue-700 text-white p-2 rounded-lg respond-btn" data-id="${emergency.id}">
+                            <i class="fas fa-first-aid"></i>
+                        </button>
+                    ` : ''}
                 </div>
             </div>
         `;
@@ -2014,7 +2070,8 @@ function loadEmergencies() {
         btn.addEventListener('click', function (e) {
             e.stopPropagation(); // Prevent triggering the item click event
             const emergencyId = parseInt(this.getAttribute('data-id'));
-            respondToEmergency(emergencyId);
+            // Clicking the blue respond icon now resolves the case immediately
+            promptResolveMessage(emergencyId);
         });
     });
 }
@@ -2247,4 +2304,57 @@ function setButtonLoading(buttonEl, isLoading, loadingText) {
         if (original) buttonEl.innerHTML = original;
         buttonEl.disabled = false;
     }
+}
+
+// Prompt for resolve message and persist
+async function promptResolveMessage(emergencyId) {
+    // Simple prompt UI using a modal-like div
+    const modal = document.createElement('div');
+    modal.className = 'modal';
+    modal.innerHTML = `
+        <div class="modal-content">
+            <div class="close-modal"><i class="fas fa-times"></i></div>
+            <h3 class="text-lg font-bold mb-3">Resolve Emergency</h3>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Message to reporter</label>
+            <textarea id="resolve-message" class="w-full px-3 py-2 border border-gray-300 rounded-lg" rows="3" placeholder="Type a short resolution message..."></textarea>
+            <div class="mt-4 flex justify-end space-x-2">
+                <button id="cancel-resolve" class="px-4 py-2 bg-gray-200 hover:bg-gray-300 rounded-lg">Cancel</button>
+                <button id="confirm-resolve" class="px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg">Confirm</button>
+            </div>
+        </div>`;
+
+    document.body.appendChild(modal);
+
+    const close = () => { try { document.body.removeChild(modal); } catch (e) {} };
+    modal.querySelector('.close-modal').addEventListener('click', close);
+    modal.addEventListener('click', (e) => { if (e.target === modal) close(); });
+    modal.querySelector('#cancel-resolve').addEventListener('click', close);
+
+    modal.querySelector('#confirm-resolve').addEventListener('click', async () => {
+        const message = modal.querySelector('#resolve-message').value.trim();
+        setGlobalLoading(true, 'Resolving emergency...');
+        try {
+            // Store resolution note in Firestore if ready, else just update local
+            const extra = { resolutionMessage: message || '' };
+            if (window.isFirebaseReady && window.isFirebaseReady()) {
+                await window.EmergencyService.updateEmergencyStatus(emergencyId, 'resolved', extra);
+            }
+            // Update local state for immediate UI feedback
+            const idx = appState.emergencies.findIndex(e => String(e.id) === String(emergencyId));
+            if (idx !== -1) {
+                appState.emergencies[idx].status = 'resolved';
+                appState.emergencies[idx].resolutionMessage = message || '';
+            }
+            loadEmergencies();
+            loadAnalyticsData();
+            showNotification('Emergency marked as resolved', 'success');
+            mapModal.classList.add('hidden');
+        } catch (e) {
+            console.error('Resolve failed', e);
+            showNotification('Failed to resolve emergency', 'error');
+        } finally {
+            setGlobalLoading(false);
+            close();
+        }
+    });
 }

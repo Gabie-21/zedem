@@ -333,6 +333,16 @@ body {
     margin-left: 8px;
 }
 
+.resolved-badge {
+    background-color: #22c55e;
+    color: #065f46;
+    padding: 2px 8px;
+    border-radius: 9999px;
+    font-size: 0.75rem;
+    font-weight: 700;
+    display: inline-block;
+}
+
 /* Emergency type radio buttons */
 .emergency-type-radio {
     display: none;
