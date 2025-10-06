@@ -358,6 +358,7 @@ const medicalEmergenciesEl = document.getElementById('medical-emergencies');
 const fireEmergenciesEl = document.getElementById('fire-emergencies');
 const policeEmergenciesEl = document.getElementById('police-emergencies');
 const reportTableBody = document.getElementById('report-table-body');
+let responderListFilter = 'active'; // active | responded | resolved
 
 // Show login modal on page load
 document.addEventListener('DOMContentLoaded', function () {
@@ -373,6 +374,9 @@ document.addEventListener('DOMContentLoaded', function () {
     setupAlertSystem();
     setupAnalytics();
     setupLoadingHelpers();
+    setupSummaryFilters();
+    // Recalculate Leaflet map size on window resize
+    window.addEventListener('resize', ensureMapSize);
 });
 
 // Session management functions
@@ -1057,8 +1061,8 @@ function setupModalEvents() {
             return;
         }
 
-        const emergencyId = parseInt(selectedEmergency.getAttribute('data-id'));
-        const emergency = appState.emergencies.find(e => e.id === emergencyId);
+        const emergencyId = String(selectedEmergency.getAttribute('data-id'));
+        const emergency = appState.emergencies.find(e => String(e.id) === emergencyId);
 
         if (emergency) {
             showEmergencyMap(emergency);
@@ -1072,13 +1076,23 @@ function setupModalEvents() {
         const selectedEmergency = document.querySelector('.emergency-item.selected');
         if (!selectedEmergency) {
             showNotification('Please select an emergency first', 'error');
+            try {
+                // Soft highlight the newest active emergency as a hint
+                const firstItem = document.querySelector('.emergency-item');
+                if (firstItem) {
+                    firstItem.classList.add('selected');
+                    firstItem.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    setTimeout(() => firstItem.classList.remove('selected'), 1500);
+                }
+            } catch (e) {}
             return;
         }
 
-        const emergencyId = parseInt(selectedEmergency.getAttribute('data-id'));
-        selectedEmergencyForDispatch = appState.emergencies.find(e => e.id === emergencyId);
+        const emergencyId = String(selectedEmergency.getAttribute('data-id'));
+        selectedEmergencyForDispatch = appState.emergencies.find(e => String(e.id) === emergencyId);
 
         if (selectedEmergencyForDispatch) {
+            populateDispatchUnits();
             dispatchModal.classList.remove('hidden');
         }
     });
@@ -1093,11 +1107,12 @@ function setupModalEvents() {
             return;
         }
 
-        // Update emergency status
+        // Update emergency status and unit availability
         selectedEmergencyForDispatch.status = 'dispatched';
         selectedEmergencyForDispatch.dispatchedUnit = unit;
         selectedEmergencyForDispatch.dispatchNotes = notes;
         selectedEmergencyForDispatch.dispatchTime = new Date();
+        markUnitBusy(unit, true);
 
         // Send update to server
         updateEmergencyStatus(selectedEmergencyForDispatch.id, 'dispatched', currentUser.name);
@@ -1130,6 +1145,127 @@ function setupModalEvents() {
             promptResolveMessage(emergencyId);
         });
     }
+
+    // Seed units (dev helper)
+    if (seedUnitsBtn) {
+        seedUnitsBtn.addEventListener('click', async function () {
+            if (!currentUser || currentUser.type !== 'responder') {
+                showNotification('Login as a responder to seed units', 'error');
+                return;
+            }
+            try {
+                setGlobalLoading(true, 'Seeding units...');
+                const org = currentUser.organization || 'general';
+                const units = [
+                    { name: 'Ambulance 1', type: 'ambulance', busy: false },
+                    { name: 'Ambulance 2', type: 'ambulance', busy: false },
+                    { name: 'Rescue 1', type: 'support', busy: false },
+                ];
+                if (window.isFirebaseReady && window.isFirebaseReady()) {
+                    // store under /responses/units-{org}/orgUnits subcollection
+                    const root = window.responsesCollection().doc(`units-${org}`);
+                    await root.set({ org });
+                    const orgUnits = root.collection('orgUnits');
+                    // clear existing
+                    const existing = await orgUnits.get();
+                    const batch = window.db.batch();
+                    existing.forEach(d => batch.delete(d.ref));
+                    units.forEach(u => batch.set(orgUnits.doc(), { ...u, org }));
+                    await batch.commit();
+                }
+                // Mirror to local cache
+                const local = ensureUnitsForOrg(org);
+                local.splice(0, local.length, ...units.map((u, i) => ({ id: `${org}-seed-${i+1}`, ...u })));
+                showNotification('Units seeded', 'success');
+                populateDispatchUnits();
+            } catch (e) {
+                console.error('Seeding failed', e);
+                showNotification('Failed to seed units', 'error');
+            } finally {
+                setGlobalLoading(false);
+            }
+        });
+    }
+}
+// Summary tabs filtering
+function setupSummaryFilters() {
+    document.querySelectorAll('.summary-card').forEach(card => {
+        card.addEventListener('click', function () {
+            document.querySelectorAll('.summary-card').forEach(c => c.classList.remove('active'));
+            this.classList.add('active');
+            responderListFilter = this.getAttribute('data-filter');
+            loadEmergencies();
+        });
+    });
+}
+
+// Simple unit store (seeded by organization on first use)
+if (!window.unitsStore) {
+    window.unitsStore = { byOrg: {} };
+}
+
+function ensureUnitsForOrg(org) {
+    const store = window.unitsStore.byOrg;
+    if (!org) return [];
+    if (!store[org]) {
+        // Seed units based on org type keywords
+        const o = String(org).toLowerCase();
+        if (o.includes('hospital')) {
+            store[org] = [
+                { id: `${org}-amb-1`, name: 'Ambulance 1', type: 'ambulance', busy: false },
+                { id: `${org}-amb-2`, name: 'Ambulance 2', type: 'ambulance', busy: false },
+                { id: `${org}-med-1`, name: 'Medical Team 1', type: 'medical', busy: false },
+            ];
+        } else if (o.includes('police')) {
+            store[org] = [
+                { id: `${org}-patrol-1`, name: 'Patrol Car 1', type: 'patrol', busy: false },
+                { id: `${org}-patrol-2`, name: 'Patrol Car 2', type: 'patrol', busy: false },
+                { id: `${org}-swat-1`, name: 'Response Team 1', type: 'response', busy: false },
+            ];
+        } else if (o.includes('fire')) {
+            store[org] = [
+                { id: `${org}-truck-1`, name: 'Fire Truck 1', type: 'truck', busy: false },
+                { id: `${org}-truck-2`, name: 'Fire Truck 2', type: 'truck', busy: false },
+                { id: `${org}-rescue-1`, name: 'Rescue Team 1', type: 'rescue', busy: false },
+            ];
+        } else {
+            store[org] = [
+                { id: `${org}-unit-1`, name: 'Unit 1', type: 'general', busy: false },
+                { id: `${org}-unit-2`, name: 'Unit 2', type: 'general', busy: false },
+            ];
+        }
+    }
+    return store[org];
+}
+
+function populateDispatchUnits() {
+    const select = document.getElementById('dispatch-unit');
+    if (!select || !currentUser || currentUser.type !== 'responder') return;
+    let units = ensureUnitsForOrg(currentUser.organization);
+    // Augment with Firestore units if available
+    if (window.isFirebaseReady && window.isFirebaseReady()) {
+        // no await here; try to fetch quickly and repopulate
+        const org = currentUser.organization || 'general';
+        window.responsesCollection().doc(`units-${org}`).collection('orgUnits').get()
+            .then(snap => {
+                const fsUnits = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+                if (fsUnits.length > 0) {
+                    window.unitsStore.byOrg[org] = fsUnits.map(u => ({ id: u.id, name: u.name, type: u.type, busy: !!u.busy }));
+                    populateDispatchUnits();
+                }
+            })
+            .catch(() => {});
+    }
+    units = ensureUnitsForOrg(currentUser.organization);
+    select.innerHTML = '<option value="">Select a response unit</option>' +
+        units.map(u => `<option value="${u.id}" ${u.busy ? 'disabled' : ''}>${u.name} ${u.busy ? '(Busy)' : ''}</option>`).join('');
+}
+
+function markUnitBusy(unitId, busy) {
+    if (!currentUser || currentUser.type !== 'responder') return;
+    const units = ensureUnitsForOrg(currentUser.organization);
+    const idx = units.findIndex(u => u.id === unitId);
+    if (idx !== -1) units[idx].busy = !!busy;
 }
 
 // Show emergency on map
@@ -1224,6 +1360,10 @@ function goToNextStep() {
         // Update UI
         updateStepUI();
 
+        // If we just switched to the map step, fix map size
+        if (currentStep === 3) {
+            setTimeout(ensureMapSize, 0);
+        }
         // If we're on the final step, load rescue centers
         if (currentStep === 4) {
             loadRescueCenters();
@@ -1657,6 +1797,7 @@ function initMap() {
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
         attribution: '© OpenStreetMap contributors'
     }).addTo(map);
+    setTimeout(ensureMapSize, 50);
 
     // Try to get user's actual location
     if (navigator.geolocation) {
@@ -1716,6 +1857,7 @@ function initMap() {
                 if (currentStep === 4) {
                     loadRescueCenters();
                 }
+                setTimeout(ensureMapSize, 0);
             },
             {
                 enableHighAccuracy: true,
@@ -1738,6 +1880,7 @@ function initMap() {
         if (currentStep === 4) {
             loadRescueCenters();
         }
+        setTimeout(ensureMapSize, 0);
     }
 
     // Add markers for nearby rescue centers
@@ -1771,6 +1914,12 @@ function initMap() {
                 window.DataSyncController.refreshCentersOnMap();
             }
         } catch (e) {}
+}
+
+function ensureMapSize() {
+    try {
+        if (map) map.invalidateSize();
+    } catch (e) {}
 }
 
 // Load rescue centers with proximity calculation
@@ -1946,11 +2095,15 @@ function loadEmergencies() {
     respondedEmergenciesEl.textContent = respondedEmergencies.length;
     resolvedEmergenciesEl.textContent = resolvedEmergencies.length;
 
-    if (activeEmergencies.length === 0) {
+    let listToRender = activeEmergencies;
+    if (responderListFilter === 'responded') listToRender = respondedEmergencies;
+    if (responderListFilter === 'resolved') listToRender = resolvedEmergencies;
+
+    if (listToRender.length === 0) {
         emergenciesList.innerHTML = `
             <div class="text-center py-8 text-gray-500">
                 <i class="fas fa-inbox text-4xl mb-3"></i>
-                <p>No active emergencies at this time</p>
+                <p>No emergencies in this category</p>
             </div>
         `;
         return;
@@ -1964,12 +2117,12 @@ function loadEmergencies() {
         if (sev.includes('Moderate')) return 1;
         return 0;
     };
-    activeEmergencies.sort((a, b) => {
+    listToRender.sort((a, b) => {
         const sw = severityWeight(b.severity) - severityWeight(a.severity);
         return sw !== 0 ? sw : (new Date(b.timestamp) - new Date(a.timestamp));
     });
 
-    activeEmergencies.forEach(emergency => {
+    listToRender.forEach(emergency => {
         let severityClass = 'moderate';
         if (emergency.severity.includes('Critical')) severityClass = 'critical';
         if (emergency.severity.includes('Serious')) severityClass = 'serious';
@@ -2021,6 +2174,9 @@ function loadEmergencies() {
                         <span class="text-sm text-gray-500">${formatTime(emergency.timestamp)}</span>
                         ${emergency.timestamp > Date.now() - 60000 ? '<span class="real-time-badge">NEW</span>' : ''}
                         ${emergency.status === 'resolved' ? '<span class="ml-2 resolved-badge">RESOLVED</span>' : ''}
+                        ${emergency.status === 'responded' ? '<span class="status-chip chip-responded">RESPONDED</span>' : ''}
+                        ${emergency.status === 'dispatched' ? '<span class="status-chip chip-dispatched">DISPATCHED</span>' : ''}
+                        ${emergency.status === 'reported' ? '<span class="status-chip chip-reported">REPORTED</span>' : ''}
                     </div>
                     <p class="text-sm mt-2"><i class="fas fa-map-marker-alt mr-1"></i> ${emergency.address} ${emergency.landmark ? `(${emergency.landmark})` : ''}</p>
                     <p class="text-sm mt-1"><i class="fas fa-user mr-1"></i> Reported by: ${emergency.reporter.name}</p>
@@ -2059,6 +2215,8 @@ function loadEmergencies() {
 
             // Add selection to clicked item
             this.classList.add('selected');
+            // Persist latest selected id for alert View Details to use quickly
+            try { localStorage.setItem('lastSelectedEmergencyId', String(this.getAttribute('data-id'))); } catch (e) {}
         });
     });
 
@@ -2069,7 +2227,7 @@ function loadEmergencies() {
     document.querySelectorAll('.respond-btn').forEach(btn => {
         btn.addEventListener('click', function (e) {
             e.stopPropagation(); // Prevent triggering the item click event
-            const emergencyId = parseInt(this.getAttribute('data-id'));
+            const emergencyId = String(this.getAttribute('data-id'));
             // Clicking the blue respond icon now resolves the case immediately
             promptResolveMessage(emergencyId);
         });
@@ -2335,9 +2493,20 @@ async function promptResolveMessage(emergencyId) {
         setGlobalLoading(true, 'Resolving emergency...');
         try {
             // Store resolution note in Firestore if ready, else just update local
+            const idStr = String(emergencyId || '').trim();
             const extra = { resolutionMessage: message || '' };
             if (window.isFirebaseReady && window.isFirebaseReady()) {
-                await window.EmergencyService.updateEmergencyStatus(emergencyId, 'resolved', extra);
+                if (idStr && idStr !== 'NaN' && idStr !== 'undefined') {
+                    await window.EmergencyService.updateEmergencyStatus(idStr, 'resolved', extra);
+                } else {
+                    // fallback: just write a message entry instead of updating emergency
+                    const doc = {
+                        type: 'resolution',
+                        message: extra.resolutionMessage,
+                        createdAt: new Date(),
+                    };
+                    try { await window.responsesCollection().add(doc); } catch (_) {}
+                }
             }
             // Update local state for immediate UI feedback
             const idx = appState.emergencies.findIndex(e => String(e.id) === String(emergencyId));

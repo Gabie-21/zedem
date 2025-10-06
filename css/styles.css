@@ -192,6 +192,16 @@ body {
     box-shadow: 0 8px 15px rgba(0, 0, 0, 0.1);
 }
 
+/* Clickable summary cards as tabs */
+.summary-card {
+    cursor: pointer;
+    border: 2px solid transparent;
+    transition: border-color 0.2s ease, transform 0.2s ease;
+}
+.summary-card.active {
+    border-color: #3b82f6;
+}
+
 .rescue-center-card {
     background: white;
     border-radius: 12px;
@@ -307,6 +317,12 @@ body {
     transform: translateX(5px);
 }
 
+.emergency-item.selected {
+    border-left-color: #3b82f6;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15);
+    background-color: #f8fafc;
+}
+
 .emergency-item.critical {
     border-left-color: #dc2626;
 }
@@ -341,6 +357,28 @@ body {
     font-size: 0.75rem;
     font-weight: 700;
     display: inline-block;
+}
+
+/* Status chips for list items */
+.status-chip {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 9999px;
+    font-size: 0.75rem;
+    font-weight: 700;
+    margin-left: 6px;
+}
+.chip-reported {
+    background: #fee2e2;
+    color: #991b1b;
+}
+.chip-dispatched {
+    background: #fef3c7;
+    color: #92400e;
+}
+.chip-responded {
+    background: #dbeafe;
+    color: #1e3a8a;
 }
 
 /* Emergency type radio buttons */

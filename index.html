@@ -508,17 +508,17 @@
             <h2 class="text-2xl font-bold mb-6">Emergency Response Dashboard</h2>
 
             <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
-                <div class="emergency-card p-5 text-center">
+                <div id="summary-active" data-filter="active" class="emergency-card p-5 text-center summary-card active">
                     <div class="text-3xl font-bold text-blue-600 mb-2" id="active-emergencies">0</div>
                     <div class="text-gray-600">Active Emergencies</div>
                 </div>
 
-                <div class="emergency-card p-5 text-center">
+                <div id="summary-responded" data-filter="responded" class="emergency-card p-5 text-center summary-card">
                     <div class="text-3xl font-bold text-green-600 mb-2" id="responded-emergencies">0</div>
                     <div class="text-gray-600">Responded To</div>
                 </div>
 
-                <div class="emergency-card p-5 text-center">
+                <div id="summary-resolved" data-filter="resolved" class="emergency-card p-5 text-center summary-card">
                     <div class="text-3xl font-bold text-gray-600 mb-2" id="resolved-emergencies">0</div>
                     <div class="text-gray-600">Resolved</div>
                 </div>
