@@ -377,6 +377,15 @@ document.addEventListener('DOMContentLoaded', function () {
     setupSummaryFilters();
     // Recalculate Leaflet map size on window resize
     window.addEventListener('resize', ensureMapSize);
+    // Mark first user interaction to enable audio playback
+    document.addEventListener('click', function onceUserGesture() {
+        try { window._userInteracted = true; } catch (e) {}
+        document.removeEventListener('click', onceUserGesture);
+    });
+
+    // Temporarily disable alert popup card
+    try { window._alertsDisabled = true; } catch (e) {}
+    try { if (alertNotification) alertNotification.classList.remove('show'); } catch (e) {}
 });
 
 // Session management functions

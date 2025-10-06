@@ -77,7 +77,7 @@ const DataSyncController = (function () {
     // Real-time alert: based on Firestore docChanges to avoid missing events
     try {
       const isResponder = window.currentUser && window.currentUser.type === 'responder';
-      if (isResponder && typeof window.showAlert === 'function') {
+      if (isResponder && typeof window.showAlert === 'function' && !window._alertsDisabled) {
         const changes = snapshot.docChanges();
         changes.forEach(change => {
           if (change.type !== 'added') return;
