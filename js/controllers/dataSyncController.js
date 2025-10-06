@@ -14,6 +14,9 @@ const DataSyncController = (function () {
       } else if (typeof data.location.latitude === 'number' && typeof data.location.longitude === 'number') {
         loc = { lat: data.location.latitude, lng: data.location.longitude };
       }
+    } else if (typeof data.latitude === 'number' && typeof data.longitude === 'number') {
+      // Some documents store coordinates at the root instead of under location
+      loc = { lat: data.latitude, lng: data.longitude };
     }
 
     // Normalize status to app's set
@@ -33,6 +36,8 @@ const DataSyncController = (function () {
       status,
       // normalized location
       location: loc,
+      // normalize address to root for UI compatibility
+      address: data.address || (data.location && data.location.address) || '',
       reporter: data.reporter || {},
       timestamp: ts,
     };

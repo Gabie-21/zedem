@@ -276,6 +276,7 @@ let pendingAlerts = [];
 let currentAlert = null;
 let alertInterval = null;
 let alertDuration = 5 * 60 * 1000; // 5 minutes in milliseconds
+let alertCheckIntervalId = null;
 
 // Analytics variables
 let analyticsMap = null;
@@ -364,6 +365,7 @@ document.addEventListener('DOMContentLoaded', function () {
     setupModalEvents();
     setupAlertSystem();
     setupAnalytics();
+    setupLoadingHelpers();
 });
 
 // Session management functions
@@ -521,6 +523,8 @@ function updateAnalyticsMap(emergencies) {
 
     // Create a heatmap layer (using circles as a simple approximation)
     emergencies.forEach(emergency => {
+        const loc = getLatLng(emergency && emergency.location);
+        if (!loc) return;
         let color;
         switch (emergency.type) {
             case 'medical': color = 'red'; break;
@@ -529,7 +533,7 @@ function updateAnalyticsMap(emergencies) {
             default: color = 'gray';
         }
 
-        L.circle([emergency.location.lat, emergency.location.lng], {
+        L.circle([loc.lat, loc.lng], {
             color: color,
             fillColor: color,
             fillOpacity: 0.5,
@@ -668,10 +672,30 @@ function updateTimeChart(emergencies) {
 function updateReportTable(emergencies) {
     reportTableBody.innerHTML = '';
 
-    // Sort emergencies by timestamp (newest first)
+    // Handle-case priority: sort by severity weight first, then by recency
+    const severityWeight = (sev) => {
+        if (!sev) return 0;
+        if (sev.includes('Critical')) return 3;
+        if (sev.includes('Serious')) return 2;
+        if (sev.includes('Moderate')) return 1;
+        return 0;
+    };
     const sortedEmergencies = [...emergencies].sort((a, b) => {
-        return new Date(b.timestamp) - new Date(a.timestamp);
+        const sw = severityWeight(b.severity) - severityWeight(a.severity);
+        return sw !== 0 ? sw : (new Date(b.timestamp) - new Date(a.timestamp));
     });
+
+    // If nothing to show, render an empty state row immediately
+    if (sortedEmergencies.length === 0) {
+        const row = document.createElement('tr');
+        row.innerHTML = `
+            <td colspan="4" class="py-4 px-4 text-center text-gray-500">
+                No emergencies found for this period
+            </td>
+        `;
+        reportTableBody.appendChild(row);
+        return;
+    }
 
     // Add rows to table
     sortedEmergencies.forEach(emergency => {
@@ -704,16 +728,7 @@ function updateReportTable(emergencies) {
         reportTableBody.appendChild(row);
     });
 
-    // If no emergencies, show message
-    if (sortedEmergencies.length === 0) {
-        const row = document.createElement('tr');
-        row.innerHTML = `
-            <td colspan="4" class="py-4 px-4 text-center text-gray-500">
-                No emergencies found for this period
-            </td>
-        `;
-        reportTableBody.appendChild(row);
-    }
+    // done
 }
 
 // Helper function to get severity CSS class
@@ -745,6 +760,15 @@ function setupAlertSystem() {
                     }, 3000);
                 }, 100);
             }
+
+            // Open the map modal focused on this emergency
+            try {
+                const emergency = appState.emergencies.find(e => String(e.id) === String(currentAlert.id));
+                if (emergency) {
+                    showEmergencyMap(emergency);
+                    mapModal.classList.remove('hidden');
+                }
+            } catch (e) { console.warn('Failed to open details map', e); }
         }
         hideAlert();
     });
@@ -762,7 +786,10 @@ function setupAlertSystem() {
     });
 
     // Check for new emergencies periodically
-    setInterval(checkForNewEmergencies, 3000);
+    if (alertCheckIntervalId) {
+        clearInterval(alertCheckIntervalId);
+    }
+    alertCheckIntervalId = setInterval(checkForNewEmergencies, 3000);
 }
 
 // Check for new emergencies and trigger alerts
@@ -1059,15 +1086,16 @@ function showEmergencyMap(emergency) {
         emergencyMap.remove();
     }
 
-    // Create new map
-    emergencyMap = L.map('emergency-map').setView([emergency.location.lat, emergency.location.lng], 15);
+    // Normalize coordinates and create new map
+    const loc = getLatLng(emergency && emergency.location) || { lat: -15.3875, lng: 28.3228 };
+    emergencyMap = L.map('emergency-map').setView([loc.lat, loc.lng], 15);
 
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
         attribution: '© OpenStreetMap contributors'
     }).addTo(emergencyMap);
 
     // Add marker for emergency location
-    L.marker([emergency.location.lat, emergency.location.lng])
+    L.marker([loc.lat, loc.lng])
         .addTo(emergencyMap)
         .bindPopup(`
             <strong>${emergency.type.toUpperCase()} Emergency</strong><br>
@@ -1105,6 +1133,18 @@ function showEmergencyMap(emergency) {
                 Phone: ${center.phone}
             `);
     });
+}
+
+// Normalize a location object to { lat, lng }
+function getLatLng(location) {
+    if (!location) return null;
+    if (typeof location.lat === 'number' && typeof location.lng === 'number') {
+        return { lat: location.lat, lng: location.lng };
+    }
+    if (typeof location.latitude === 'number' && typeof location.longitude === 'number') {
+        return { lat: location.latitude, lng: location.longitude };
+    }
+    return null;
 }
 
 // Setup form navigation
@@ -1288,12 +1328,17 @@ document.getElementById('reporter-login-btn').addEventListener('click', function
 
 // Responder login (Firebase Auth)
 document.getElementById('responder-login-btn').addEventListener('click', async function () {
+    const btn = this;
+    setButtonLoading(btn, true, 'Signing in...');
+    setGlobalLoading(true, 'Signing in...');
     const email = document.getElementById('responder-email').value;
     const password = document.getElementById('responder-password').value;
     const organization = document.getElementById('responder-org').value;
 
     if (!email || !password || !organization) {
         showNotification('Please fill all fields', 'error');
+        setButtonLoading(btn, false);
+        setGlobalLoading(false);
         return;
     }
 
@@ -1344,6 +1389,9 @@ document.getElementById('responder-login-btn').addEventListener('click', async f
     } catch (e) {
         console.error('Responder login failed', e);
         showNotification('Login failed', 'error');
+    } finally {
+        setButtonLoading(btn, false);
+        setGlobalLoading(false);
     }
 });
 
@@ -1377,6 +1425,7 @@ document.getElementById('guest-login-btn').addEventListener('click', function ()
 
 // Logout functionality
 logoutBtn.addEventListener('click', async function () {
+    setGlobalLoading(true, 'Logging out...');
     try {
         if (window.isFirebaseReady && window.isFirebaseReady()) {
             await window.AuthService.logout();
@@ -1400,13 +1449,22 @@ logoutBtn.addEventListener('click', async function () {
         emergencyRefreshInterval = null;
     }
 
+    // Stop alerts and sounds
+    resetAlertSystem();
+
     showNotification('Logged out successfully', 'info');
+    setGlobalLoading(false);
 });
 
 // Submit emergency
 document.getElementById('submit-emergency').addEventListener('click', async function () {
+    const btn = this;
+    setButtonLoading(btn, true, 'Submitting...');
+    setGlobalLoading(true, 'Submitting emergency...');
     if (!currentEmergencyType) {
         showNotification('Please select an emergency type', 'error');
+        setButtonLoading(btn, false);
+        setGlobalLoading(false);
         return;
     }
 
@@ -1418,6 +1476,8 @@ document.getElementById('submit-emergency').addEventListener('click', async func
 
     if (!description || !address) {
         showNotification('Please provide emergency details and location', 'error');
+        setButtonLoading(btn, false);
+        setGlobalLoading(false);
         return;
     }
 
@@ -1480,6 +1540,7 @@ document.getElementById('submit-emergency').addEventListener('click', async func
     } catch (e) {
         console.error('Failed to save emergency:', e);
         appState.emergencies.push(emergency);
+        showNotification('Saved locally (offline).', 'info');
     }
 
     showNotification('Emergency reported successfully! Help is on the way.', 'success');
@@ -1515,6 +1576,8 @@ document.getElementById('submit-emergency').addEventListener('click', async func
         currentEmergencyType = null;
 
         showNotification('Emergency responders have been notified', 'info');
+        setButtonLoading(btn, false);
+        setGlobalLoading(false);
     }, 2000);
 });
 
@@ -1840,8 +1903,18 @@ function loadEmergencies() {
         return;
     }
 
-    // Sort by timestamp (newest first)
-    activeEmergencies.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+    // Handle-case priority: Critical > Serious > Moderate, then newest
+    const severityWeight = (sev) => {
+        if (!sev) return 0;
+        if (sev.includes('Critical')) return 3;
+        if (sev.includes('Serious')) return 2;
+        if (sev.includes('Moderate')) return 1;
+        return 0;
+    };
+    activeEmergencies.sort((a, b) => {
+        const sw = severityWeight(b.severity) - severityWeight(a.severity);
+        return sw !== 0 ? sw : (new Date(b.timestamp) - new Date(a.timestamp));
+    });
 
     activeEmergencies.forEach(emergency => {
         let severityClass = 'moderate';
@@ -2128,3 +2201,50 @@ setInterval(() => {
     const randomStatus = statuses[Math.floor(Math.random() * statuses.length)];
     document.getElementById('status').textContent = randomStatus;
 }, 8000);
+
+// Alert reset on logout or view change
+function resetAlertSystem() {
+    try { hideAlert(); } catch (e) {}
+    pendingAlerts = [];
+    updateAlertCounter();
+    if (alertInterval) {
+        clearInterval(alertInterval);
+        alertInterval = null;
+    }
+    if (alertCheckIntervalId) {
+        clearInterval(alertCheckIntervalId);
+        alertCheckIntervalId = null;
+    }
+    alertSoundEnabled = false;
+    if (soundToggle) {
+        soundToggle.classList.add('muted');
+        soundToggle.innerHTML = '<i class="fas fa-volume-mute"></i>';
+    }
+}
+
+// Loading helpers
+function setupLoadingHelpers() {
+    window.setGlobalLoading = setGlobalLoading;
+}
+
+function setGlobalLoading(show, text) {
+    const overlay = document.getElementById('global-loading');
+    const textEl = document.getElementById('global-loading-text');
+    if (!overlay) return;
+    if (typeof text === 'string' && textEl) textEl.textContent = text;
+    if (show) overlay.classList.remove('hidden');
+    else overlay.classList.add('hidden');
+}
+
+function setButtonLoading(buttonEl, isLoading, loadingText) {
+    if (!buttonEl) return;
+    if (isLoading) {
+        buttonEl.setAttribute('data-original-text', buttonEl.innerHTML);
+        buttonEl.disabled = true;
+        buttonEl.innerHTML = `${loadingText || 'Loading...'} <i class="fas fa-spinner fa-spin ml-2"></i>`;
+    } else {
+        const original = buttonEl.getAttribute('data-original-text');
+        if (original) buttonEl.innerHTML = original;
+        buttonEl.disabled = false;
+    }
+}
